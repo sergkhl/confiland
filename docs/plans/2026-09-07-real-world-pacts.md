@@ -2,11 +2,12 @@
 
 # Real-world pacts with the guardian
 
-Status: In progress; units 1 and 3 implemented; unit 2 implemented with browser acceptance owner-gated.
+Status: Owner-gated on BROWSER-ACCEPTANCE; implementation and automated checks are complete.
 Order: 1 of 1.
 Scope: Six everyday challenges, personal difficulty review, an AGREE signature, and an honest return.
 Execution: Units 1–4 in order, one unit at a time; drain-plans implementation authorized.
-NEXT: Unit 4 automated integration checks and durable documentation; BROWSER-ACCEPTANCE remains pending.
+NEXT: After an explicit browser-testing request, complete units 2/4 observed acceptance in local demo/isolated fixtures.
+Exit: Keep this plan open for the multi-scenario interaction/animation session; its acceptance is not yet proved.
 Coordination: [Index](README.md) · [TODO](TODO.md) · [Blockers](BLOCKERS.md).
 
 ## Problem and intended outcome
@@ -25,7 +26,7 @@ The content draws on graded practice and comparing predictions with observed exp
 - [The scene](../../app/page.tsx) owns pointer capture, keyboard input, persistence, daily/demo separation, and return UI. Preserve storage error recovery and interruption handling while introducing the new flow.
 - [The artwork notes](../../art-direction.md) describe six fixed raster poses, a baked checkerboard, and crop/blend workarounds. The atlas has no independently movable paw or arm. Longer writing needs suitable foreground artwork and motion; selecting existing poses alone cannot supply it.
 - [Browser tools](../../lib/webmcp.ts) currently expose a 900 ms `press_and_seal` contract. That contract must be retired when the mechanic changes; it cannot silently claim to perform the new trace.
-- [Current tests](../../tests/ritual.test.ts) cover the existing state and one-dimensional gestures. Their assumptions must change with the interaction. [README](../../README.md) is the durable home for play instructions and verification limitations.
+- [Signature tests](../../tests/signature.test.ts), [state compatibility tests](../../tests/pact-state.test.ts), and [persisted journeys](../../tests/persistence.test.ts) now own the replacement interaction invariants. Obsolete one-dimensional gesture tests were retired. [README](../../README.md) is the durable home for play instructions and verification limitations.
 - There is no existing `CONTEXT.md`, ADR index, or earlier plan to supersede. Adopt only this plan and the four planning files; do not add speculative architecture documents.
 
 ## Agreed design
@@ -171,6 +172,8 @@ Delete the completed plan and its index/TODO references in a separate commit aft
 - 2026-09-07 — Unit 2 implementation: connected AGREE geometry, next-segment guidance, saved ink, frame-coalesced input, independent brush paw/lift/answer crops, and explicit keyboard/tap completion are implemented. State/path tests and TypeScript pass; geometry tests traverse every ordered turn and retrace and reject shortcuts, stale owners, cancellation, unsaved endpoint release, and duplicate sealing. The hold/pull engine and browser seal tool are retired; only a validation-only legacy reader remains. Path and input invariants live in tests/README; asset source, exact prompt, source-space crops, nib anchors, and RGB/checkerboard limitations live in art-direction.md. No observed browser timing, touch, visual alignment, or animation quality is claimed; BROWSER-ACCEPTANCE owns those remaining criteria.
 
 - 2026-09-07 — Unit 3: complete explicit review branches, conditional prediction comparison, actual effort/non-attempt separation, context-specific guardian reactions, and optional next-step suggestions. Table-driven tests cover every rule in both practices at all three steps, no prior review, bounds, and player overrides. State and browser-tool contract tests prove immutable signed actions, independent retained reviews across days, explicit overdue closure, uncertain/true predictions without penalties, exact legacy closure, and no guessed review fields. TypeScript and targeted lint pass. Rules and controls are retained in README; browser integration observation remains part of BROWSER-ACCEPTANCE.
+
+- 2026-09-07 — Unit 4 automated/documentation batch: all 32 focused tests, TypeScript, targeted implementation lint, and the production build pass. Persisted isolated journeys cover both practices, all outcomes, chosen/skipped predictions, midpoint/endpoint reload, daily/demo separation, midnight sealing, stale tab mutations, malformed/missing/unavailable storage, and failed seal/outcome/closure writes. Repeating an explicit outcome preserves its existing observations. Keyboard tracing cannot seal through repeated activations; late pointer writes retain their ritual owner; reopening a saved pact does not replay the new-seal mark animation. README owns play/keyboard/tool/save instructions and precise verification limits; art-direction.md owns the intact RGB atlas and rendering constraints. Required observed browser scenarios were not run, so units 2/4 remain open under BROWSER-ACCEPTANCE. No physical device, simulator, published browser save, deployment, real-world contact, or confidence-effectiveness evidence is claimed.
 
 ## Open findings
 

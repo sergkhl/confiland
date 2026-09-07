@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Choices, signature, explicit reviews, and optional suggestions are implemented. Next: unit 4 automated checks/documentation. Observed interaction acceptance remains owner-gated on BROWSER-ACCEPTANCE.
+1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — Owner-gated on BROWSER-ACCEPTANCE. Implementation, local automated checks, and durable documentation are complete. Units 2/4 retain the observed mouse/touch, responsive, and animation acceptance session; explicit local browser-testing authorization is required.
 
 [Workstreams](TODO.md) · [Pending releases](RELEASE.md) · [Owner blockers](BLOCKERS.md).
