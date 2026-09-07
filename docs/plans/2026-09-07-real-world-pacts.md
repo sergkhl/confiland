@@ -2,10 +2,11 @@
 
 # Real-world pacts with the guardian
 
-Status: Ready; design agreed, implementation not started.
+Status: In progress; unit 1 complete. Unit 2 is next.
 Order: 1 of 1.
 Scope: Six everyday challenges, personal difficulty review, an AGREE signature, and an honest return.
-Execution: Units 1–4 in order, one unit at a time; implementation requires a separate invocation.
+Execution: Units 1–4 in order, one unit at a time; drain-plans implementation authorized.
+NEXT: Replace the interim letter controls with the connected AGREE path and guardian motion.
 Coordination: [Index](README.md) · [TODO](TODO.md) · [Blockers](BLOCKERS.md).
 
 ## Problem and intended outcome
@@ -164,6 +165,8 @@ Close only after all four units meet their acceptance criteria, durable instruct
 Delete the completed plan and its index/TODO references in a separate commit after its durable facts are re-homed. Git history is the archive. Keep the rolling COMPLETED outcome separate from release status.
 
 ## Validation Log
+
+- 2026-09-07 — Unit 1: authored six selectable actions and connected effort/prediction choices to the guardian scene. Focused state/storage tests and TypeScript pass. The runnable scene uses interim explicit letter controls while unit 2 installs the path; no pointer-gesture quality is claimed. Invariants: choice freezes at tracing; seal uses its actual local date; v1 signed wording/outcome survives exactly without invented AGREE ink or difficulty; failed writes retain the original record; stale pages cannot apply events to newer saves. Durable save mechanics are in README and executable tests. The review fields have a minimal runnable interface; unit 3 owns reactions and suggestions.
 
 ## Open findings
 

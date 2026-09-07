@@ -157,3 +157,31 @@ h1>span { color:var(--red); }
 @media(max-width:760px) { .guardian-scene{overflow:hidden} }
 
 .guardian-seal>span { font-size:14px!important;letter-spacing:.7px; }
+
+/* Pact choice and review controls. */
+.pact-layout { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start; }
+.pact-layout .guardian-scene { position:sticky;top:24px;min-height:500px; }
+.pact-interaction { padding:34px 36px 38px 16px;min-width:0; }
+.pact-interaction h1 { font-size:48px;line-height:1.05;margin:8px 0 24px; }
+fieldset { border:0;padding:0;margin:0 0 22px;min-width:0; }
+legend { font-size:15px;font-weight:600;margin-bottom:10px; }
+legend span { display:block;font-size:14px;font-weight:400;color:#6c695e;margin-top:3px; }
+.chip-row { display:flex;flex-wrap:wrap;gap:8px; }
+.chip-row button,.pact-card { border:1px solid #b4aea0;background:var(--paper);color:var(--ink);min-height:44px;padding:10px 12px;text-align:left;font-size:14px; }
+.chip-row button[aria-pressed=true],.pact-card[aria-pressed=true] { border-color:var(--ink);box-shadow:2px 2px 0 var(--ink);background:#f8e9df; }
+.pact-cards { display:grid;gap:9px; }
+.pact-card { display:flex;align-items:center;gap:13px;font-size:16px;min-height:54px; }
+.step-number { color:var(--red);font-family:var(--font-code),monospace;font-size:14px; }
+.pact-preview { border-left:3px solid var(--red);padding:4px 0 4px 16px;margin:22px 0; }
+.pact-preview p { font-size:19px;line-height:1.45;margin:0 0 8px;font-weight:500; }
+.pact-preview>span { display:block;font-size:14px;line-height:1.5;color:#666257; }
+.pact-preview details { margin-top:10px;font-size:14px; }.pact-preview details p { font-size:16px;font-weight:400;margin-top:10px; }.pact-preview summary { cursor:pointer; }
+.primary-button { border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:14px 18px;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:16px; }
+.primary-button:disabled { opacity:.45;cursor:default; }.primary-button:not(:disabled):hover { background:var(--red); }
+.text-button { border:0;background:transparent;display:inline-flex;align-items:center;gap:6px;padding:10px 4px;min-height:44px;font-size:14px;color:var(--red);text-decoration:underline;text-underline-offset:3px; }
+.small-note,.guardian-note { font-size:14px;line-height:1.5;color:#676257; }.guardian-note { background:#f7eee4;padding:12px;margin-top:-6px; }
+.sound-control { border:1px solid #c4bfb4;border-radius:50%;width:44px;height:44px;display:grid;place-items:center;background:transparent; }
+.return-actions,.closed-pact { display:grid;gap:16px;justify-items:start;line-height:1.6; }.return-actions p,.closed-pact p { margin:0; }
+.dated-pact { font-family:var(--font-code),monospace;margin-bottom:10px;color:var(--red)!important; }
+.signature-word { font-family:var(--font-title),Impact,sans-serif;font-size:72px;letter-spacing:10px;color:#c7bfb0; }.signature-word .written { color:var(--ink); }
+@media(max-width:760px) { .pact-layout{display:flex;flex-direction:column}.pact-layout .guardian-scene{position:relative;top:0;min-height:0;width:100%;height:260px}.pact-interaction{width:100%;padding:0 20px 28px}.pact-interaction h1{font-size:36px}.pact-preview p{font-size:18px}.pact-layout .guardian-stage{width:280px;height:280px}.workshop-footer{gap:12px}.panel-topline{height:auto;min-height:44px;gap:12px}.panel-topline>span:last-child{display:block;font-size:12px}.masthead{gap:10px}.header-controls{gap:8px} }

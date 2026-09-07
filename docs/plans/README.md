@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — Ready; implementation not started. Six everyday challenges, player-chosen difficulty, an AGREE signature, and an honest return review. Execute units 1–4 sequentially.
+1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Six authored actions and the versioned daily pact state are implemented. Next: unit 2, the connected signature and guardian motion; then review suggestions and integrated verification.
 
 [Workstreams](TODO.md) · [Pending releases](RELEASE.md) · [Owner blockers](BLOCKERS.md).

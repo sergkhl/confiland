@@ -2,11 +2,11 @@
 
 # TODO
 
-- **Meaningful daily confidence practice** — Ready. Implement [real-world pacts with the guardian](2026-09-07-real-world-pacts.md), beginning with unit 1. Design agreed; implementation not started.
+- **Meaningful daily confidence practice** — In progress. [Real-world pacts](2026-09-07-real-world-pacts.md) now have six actions, explicit effort/prediction choices, and compatible browser-local saves. Next: connected signature, return suggestions, and integrated checks.
 
 # COMPLETED
 
-_None._
+- Six authored everyday actions and versioned pact choices preserve older signed actions and reject stale or unsaved changes.
 
 # VALIDATION
 

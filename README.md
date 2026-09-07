@@ -24,6 +24,10 @@ The Sites/Vinext starter builds the app for Cloudflare Workers. `.openai/hosting
 
 ## Core code
 
+The real-world pact implementation is being introduced in ordered units. The current scene exposes six authored actions with personal effort and optional prediction choices. Signature geometry and the final verification record follow in the owning plan.
+
+Pact saves use `confidence-workshop.ritual.v2` in browser-local storage and `confidence-workshop.demo.v2` in tab-local storage. The v1 keys are retained during compatibility writes, including after a successful migration; v2 takes precedence afterward. An earlier signed action keeps its exact original label and outcome, carries no invented AGREE progress, and never enters practice difficulty suggestions. Malformed saves stay recoverable rather than being cleared. A mutation rereads and compares the current record, then writes successfully before displaying new ink, a seal, or an outcome. Unsigned drafts do not consume a local date; the seal checks the actual date. Earlier open pacts must be explicitly reviewed before the next pact.
+
 - `app/page.tsx`: responsive scene, gesture handlers, browser persistence, and optional browser-agent registration.
 - `lib/ritual.ts`: guarded transitions, save validation, local-date handling, hold gate, and forward-only progress.
 - `lib/webmcp.ts`: `read_ritual`, `press_and_seal`, and `record_outcome`, sharing the visible flow and its guards.
