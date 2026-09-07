@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Choices and signature implementation are committed; observed signature acceptance is owner-gated on BROWSER-ACCEPTANCE. Next actionable work: unit 3 return suggestions, then unit 4 automated checks/documentation.
+1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Choices, signature, explicit reviews, and optional suggestions are implemented. Next: unit 4 automated checks/documentation. Observed interaction acceptance remains owner-gated on BROWSER-ACCEPTANCE.
 
 [Workstreams](TODO.md) · [Pending releases](RELEASE.md) · [Owner blockers](BLOCKERS.md).

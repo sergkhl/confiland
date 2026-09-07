@@ -44,8 +44,8 @@ export function transitionPact(state: PactState, event: PactEvent, ritualId: str
   let lastSignedDate = state.lastSignedDate;
   if (['practice', 'choose', 'anticipated', 'prediction'].includes(event.type)) requireValue(r.phase === 'choosing', 'The action is frozen for this signature.');
   switch (event.type) {
-    case 'practice': requireValue(has(PRACTICES, event.practice), 'Choose a practice.'); next = { ...r, practice: event.practice, selected: null, anticipated: null, prediction: null }; break;
-    case 'choose': requireValue(has(CHALLENGES, event.action), 'Choose an authored action.'); next = { ...r, selected: event.action, practice: CHALLENGES[event.action].practice, anticipated: null, prediction: null }; break;
+    case 'practice': requireValue(has(PRACTICES, event.practice), 'Choose a practice.'); if (r.practice === event.practice) return state; next = { ...r, practice: event.practice, selected: null, anticipated: null, prediction: null }; break;
+    case 'choose': requireValue(has(CHALLENGES, event.action), 'Choose an authored action.'); if (r.selected === event.action) return state; next = { ...r, selected: event.action, practice: CHALLENGES[event.action].practice, anticipated: null, prediction: null }; break;
     case 'anticipated': requireValue(r.selected && has(EFFORTS, event.effort), 'Choose an action and effort.'); next.anticipated = event.effort; break;
     case 'prediction': requireValue(r.selected && (event.prediction === 'skip' || has(PREDICTIONS, event.prediction)), 'Choose a prediction or Skip.'); next.prediction = event.prediction; break;
     case 'begin': requireValue(r.phase === 'choosing' && r.selected && r.anticipated && r.prediction, 'Choose an action, effort, and prediction or Skip first.'); next.phase = 'tracing'; break;
@@ -61,7 +61,7 @@ export function transitionPact(state: PactState, event: PactEvent, ritualId: str
       lastSignedDate = today; break;
     }
     case 'back': requireValue(r.phase === 'away', 'Return to an open signed pact.'); next.phase = 'reviewing'; break;
-    case 'outcome': requireValue(r.phase === 'reviewing' && ['done', 'tried', 'not_today'].includes(event.outcome), 'Choose an honest outcome during review.'); next.review = { ...emptyReview(), outcome: event.outcome }; break;
+    case 'outcome': requireValue(r.phase === 'reviewing' && ['done', 'tried', 'not_today'].includes(event.outcome), 'Choose an honest outcome during review.'); if (r.review.outcome === event.outcome) return state; next.review = { ...emptyReview(), outcome: event.outcome }; break;
     case 'comparison': requireValue(r.phase === 'reviewing' && (r.review.outcome === 'done' || r.review.outcome === 'tried') && r.prediction && r.prediction !== 'skip' && has(COMPARISONS, event.comparison), 'This review has no prediction to compare.'); next.review = { ...r.review, comparison: event.comparison }; break;
     case 'effort': requireValue(r.phase === 'reviewing' && (r.review.outcome === 'done' || r.review.outcome === 'tried') && has(EFFORTS, event.effort), 'Report effort only for an attempt.'); next.review = { ...r.review, effort: event.effort }; break;
     case 'reason': requireValue(r.phase === 'reviewing' && r.review.outcome === 'not_today' && has(REASONS, event.reason), 'Choose a reason or Skip for Not today.'); next.review = { ...r.review, reason: event.reason }; break;
@@ -73,6 +73,7 @@ export function transitionPact(state: PactState, event: PactEvent, ritualId: str
     case 'new_day':
       requireValue(r.phase === 'closed' && r.date < today && (!lastSignedDate || lastSignedDate < today), 'Review the earlier pact before choosing a new one.');
       next = newState(today).current; break;
+    default: throw new Error('Unknown pact event.');
   }
   return { ...state, revision: state.revision + 1, current: next, latest, lastSignedDate };
 }
@@ -106,7 +107,10 @@ export function parseState(raw: string): PactState {
   if (r.selected) requireValue(CHALLENGES[r.selected].practice === r.practice, 'Practice and action do not match.');
   if (r.phase === 'choosing' || r.phase === 'tracing') {
     requireValue(r.signed === null && r.review.outcome === null, 'An unsigned draft contains a commitment.');
-    if (r.phase === 'choosing') requireValue(r.trace.progress === 0, 'A choice contains signature ink.');
+    if (r.phase === 'choosing') {
+      requireValue(r.trace.progress === 0, 'A choice contains signature ink.');
+      if (!r.selected) requireValue(r.anticipated === null && r.prediction === null, 'An unselected draft contains answers.');
+    }
     else requireValue(r.selected && r.anticipated && r.prediction, 'Incomplete tracing choices.');
   } else {
     requireValue(r.signed && s.lastSignedDate === r.date, 'Missing daily commitment.'); validateSigned(r.signed);
@@ -122,7 +126,8 @@ export function parseState(raw: string): PactState {
     if (previous === null) continue;
     requireValue(previous && typeof previous.id === 'string' && previous.id && dateValid(previous.date), 'Invalid retained review.');
     validateSigned(previous.action); validateReview(previous.review);
-    requireValue(previous.action.practice === practice && previous.review.complete && (previous.prediction === 'skip' || has(PREDICTIONS, previous.prediction)) && reviewReady({ ...r, review: previous.review, prediction: previous.prediction }), 'Invalid practice review.');
+    requireValue(s.lastSignedDate && previous.date <= s.lastSignedDate, 'A retained review has a future date.');
+    requireValue(previous.action.practice === practice && previous.review.complete && (previous.prediction === 'skip' || has(PREDICTIONS, previous.prediction)) && reviewReady({ ...r, signed: previous.action, review: previous.review, prediction: previous.prediction }), 'Invalid practice review.');
   }
   return s;
 }

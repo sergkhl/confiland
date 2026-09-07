@@ -1,12 +1,15 @@
 import { CHALLENGES, PRACTICES, EFFORTS, PREDICTIONS, actionsFor, actionAt, type Practice, type Effort, type Prediction } from '@/lib/challenges';
-import type { PactEvent, Ritual } from '@/lib/ritual';
+import { suggestedAction } from '@/lib/review';
+import type { ClosedPact, PactEvent, Ritual } from '@/lib/ritual';
 
-export function PactChoices({ ritual, send, disabled = false }: { ritual: Ritual; send: (event: PactEvent) => unknown; disabled?: boolean }) {
+export function PactChoices({ ritual, previous = null, send, disabled = false }: { ritual: Ritual; previous?: ClosedPact | null; send: (event: PactEvent) => unknown; disabled?: boolean }) {
   const action = ritual.selected ? CHALLENGES[ritual.selected] : null;
+  const suggested = suggestedAction(previous);
   return <div className="pact-choices">
     <fieldset disabled={disabled}><legend>Practice for today</legend><div className="chip-row">
       {(Object.keys(PRACTICES) as Practice[]).map(practice => <button key={practice} aria-pressed={ritual.practice === practice} onClick={() => send({ type: 'practice', practice })}>{PRACTICES[practice]}</button>)}
     </div></fieldset>
+    {suggested && <p className="practice-suggestion">From your last {PRACTICES[ritual.practice].toLowerCase()} review: <button className="text-button" disabled={disabled} onClick={() => send({ type: 'choose', action: suggested })}>{CHALLENGES[suggested].label}</button><span>You can choose any step.</span></p>}
     <fieldset disabled={disabled}><legend>Choose an action <span>Suggested steps · all are open</span></legend><div className="pact-cards">
       {actionsFor(ritual.practice).map(id => <button key={id} className="pact-card" aria-pressed={ritual.selected === id} onClick={() => send({ type: 'choose', action: id })}><span className="step-number">0{CHALLENGES[id].step}</span><span>{CHALLENGES[id].label}</span></button>)}
     </div></fieldset>

@@ -2,11 +2,12 @@
 
 # TODO
 
-- **Meaningful daily confidence practice** — In progress. [Real-world pacts](2026-09-07-real-world-pacts.md) have six actions, compatible saves, and the connected signature. Next: return suggestions and automated integration checks. Observed interaction acceptance awaits BROWSER-ACCEPTANCE.
+- **Meaningful daily confidence practice** — In progress. [Real-world pacts](2026-09-07-real-world-pacts.md) include six actions, compatible saves, signature controls, honest reviews, and optional suggestions. Next: final automated checks/documentation. Observed interaction acceptance awaits BROWSER-ACCEPTANCE.
 
 # COMPLETED
 
 - Six authored everyday actions and versioned pact choices preserve older signed actions and reject stale or unsaved changes.
+- Explicit Done/Tried/Not today review branches and bounded per-practice suggestions preserve the player's account and choice.
 
 # VALIDATION
 

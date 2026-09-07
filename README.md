@@ -14,6 +14,8 @@ For keyboard or taps, use **Write next stroke** to write the same path one autho
 
 Return at any honest time. **Done / Tried / Not today** records what you report, never what the game infers. An attempted action can compare a chosen prediction and report actual effort. Not today asks an optional reason or Skip and records no unobserved effort or prediction. Closing a review requires explicit answers; the signed action remains visible.
 
+Your latest closed review in each practice can suggest the next action: Done + Manageable suggests one step up; A stretch keeps the step; Too much suggests one step down; Tried otherwise keeps the step. Suggestions stop at the smallest/largest available step. Not today + No opportunity keeps the step; Not today + Too much suggests a smaller step; Changed plans or Skip makes no difficulty inference. Every suggestion is optional, and all actions remain selectable. An inconclusive prediction stays uncertain, and a prediction coming true is never treated as a failed ritual.
+
 One new pact may be signed per local calendar date. An earlier open pact shows its actual date and must be reviewed or explicitly closed before a fresh pact. An unsigned draft crossing midnight consumes no daily commitment. The signed date never rolls forward. **Try demo** and **Replay** are isolated rehearsals; they never change the daily pact. No accounts, backend, notifications, streaks, score, history feed, generated tasks, or clinical effectiveness claims are present.
 
 ## Local saves and compatibility

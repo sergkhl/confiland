@@ -4,4 +4,4 @@
 
 ## Website
 
-- Real-world pact choices, connected AGREE signature, guardian foreground motion, and v2 browser saves. Drain after an authorized deployment is read live and the six actions, ordered signature, and compatible saved pacts are confirmed; the required interaction acceptance session is owned by BROWSER-ACCEPTANCE in units 2–4 of [Real-world pacts](2026-09-07-real-world-pacts.md).
+- Real-world pact choices, connected AGREE signature/guardian motion, v2 save compatibility, and honest reviews with optional suggestions. Drain after an authorized deployment is read live and the six actions, ordered signature, compatible saved pacts, and conditional review/suggestions are confirmed; the required interaction acceptance session is owned by BROWSER-ACCEPTANCE in units 2–4 of [Real-world pacts](2026-09-07-real-world-pacts.md).

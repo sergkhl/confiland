@@ -2,11 +2,11 @@
 
 # Real-world pacts with the guardian
 
-Status: In progress; unit 1 complete; unit 2 implemented with browser acceptance owner-gated.
+Status: In progress; units 1 and 3 implemented; unit 2 implemented with browser acceptance owner-gated.
 Order: 1 of 1.
 Scope: Six everyday challenges, personal difficulty review, an AGREE signature, and an honest return.
 Execution: Units 1–4 in order, one unit at a time; drain-plans implementation authorized.
-NEXT: Unit 3 reactions and next-step suggestions, then unit 4 automated checks and documentation.
+NEXT: Unit 4 automated integration checks and durable documentation; BROWSER-ACCEPTANCE remains pending.
 Coordination: [Index](README.md) · [TODO](TODO.md) · [Blockers](BLOCKERS.md).
 
 ## Problem and intended outcome
@@ -169,6 +169,8 @@ Delete the completed plan and its index/TODO references in a separate commit aft
 - 2026-09-07 — Unit 1: authored six selectable actions and connected effort/prediction choices to the guardian scene. Focused state/storage tests and TypeScript pass. The runnable scene uses interim explicit letter controls while unit 2 installs the path; no pointer-gesture quality is claimed. Invariants: choice freezes at tracing; seal uses its actual local date; v1 signed wording/outcome survives exactly without invented AGREE ink or difficulty; failed writes retain the original record; stale pages cannot apply events to newer saves. Durable save mechanics are in README and executable tests. The review fields have a minimal runnable interface; unit 3 owns reactions and suggestions.
 
 - 2026-09-07 — Unit 2 implementation: connected AGREE geometry, next-segment guidance, saved ink, frame-coalesced input, independent brush paw/lift/answer crops, and explicit keyboard/tap completion are implemented. State/path tests and TypeScript pass; geometry tests traverse every ordered turn and retrace and reject shortcuts, stale owners, cancellation, unsaved endpoint release, and duplicate sealing. The hold/pull engine and browser seal tool are retired; only a validation-only legacy reader remains. Path and input invariants live in tests/README; asset source, exact prompt, source-space crops, nib anchors, and RGB/checkerboard limitations live in art-direction.md. No observed browser timing, touch, visual alignment, or animation quality is claimed; BROWSER-ACCEPTANCE owns those remaining criteria.
+
+- 2026-09-07 — Unit 3: complete explicit review branches, conditional prediction comparison, actual effort/non-attempt separation, context-specific guardian reactions, and optional next-step suggestions. Table-driven tests cover every rule in both practices at all three steps, no prior review, bounds, and player overrides. State and browser-tool contract tests prove immutable signed actions, independent retained reviews across days, explicit overdue closure, uncertain/true predictions without penalties, exact legacy closure, and no guessed review fields. TypeScript and targeted lint pass. Rules and controls are retained in README; browser integration observation remains part of BROWSER-ACCEPTANCE.
 
 ## Open findings
 
