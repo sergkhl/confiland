@@ -2,7 +2,7 @@
 
 # TODO
 
-- **Meaningful daily confidence practice** — Owner-gated on BROWSER-ACCEPTANCE. [Real-world pacts](2026-09-07-real-world-pacts.md) are implemented and pass local automated checks. Remaining: the explicitly authorized browser interaction/animation acceptance session in units 2/4.
+- **Meaningful daily confidence practice** — In progress. [Real-world pacts](2026-09-07-real-world-pacts.md) are implemented and pass local automated checks. Resume browser interaction/animation acceptance in units 2/4; no separate test permission is needed.
 
 # COMPLETED
 

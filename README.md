@@ -40,7 +40,7 @@ npx tsc --noEmit
 npm run build
 ```
 
-The existing Sites/Vinext build targets Cloudflare Workers. `.openai/hosting.json` identifies the Site. Deployment and published-browser access require a separate authorization; [pending releases](docs/plans/RELEASE.md) are not evidence of the live version.
+The existing Sites/Vinext build targets Cloudflare Workers. `.openai/hosting.json` identifies the Site. [Repository instructions](AGENTS.md) authorize acceptance testing as part of the work without a separate permission question. Deployment and publication remain separate actions. This repository does not maintain a release manifest for now.
 
 ## Core code and browser tools
 
@@ -57,4 +57,4 @@ The existing Sites/Vinext build targets Cloudflare Workers. `.openai/hosting.jso
 
 `npm test` passes all 32 focused tests; `npx tsc --noEmit`, targeted lint for the changed implementation, and `npm run build` pass. State/storage, review, tool-contract, and path tests cover choice freezing, explicit answers, local-date limits, overdue closure, exact legacy preservation, failed writes, stale IDs, mode isolation, ordered turns and retraces, shortcuts, reversal, off-path movement, early release, completed-endpoint cancellation/reload, and coordinate normalization. Persisted fixture journeys exercise both practices, all three outcomes, and both skipped/chosen prediction branches. These are deterministic local fixtures, not observed browser playthroughs or evidence of a real conversation or increased confidence.
 
-The current implementation still requires an explicitly authorized browser acceptance session for mouse and real browser touch events, keyboard/tap integration, phone/desktop composition, storage-failure UI, reduced motion, mute, and full animation inspection. The 8–12 second comfortable trace is a player-observation target, not a timing gate or a result established by scripted state changes. Physical touch ergonomics, finger occlusion, assistive technology behavior, and vibration hardware have not been verified. The owning [plan](docs/plans/2026-09-07-real-world-pacts.md) retains that missing evidence.
+Browser acceptance is being resumed for mouse and real browser touch events, keyboard/tap integration, phone/desktop composition, storage-failure UI, reduced motion, mute, and full animation inspection. The 8–12 second comfortable trace is a player-observation target, not a timing gate or a result established by scripted state changes. Physical touch ergonomics, finger occlusion, assistive technology behavior, and vibration hardware have not been verified. The owning [plan](docs/plans/2026-09-07-real-world-pacts.md) retains the current evidence.

@@ -2,11 +2,11 @@
 
 # Real-world pacts with the guardian
 
-Status: Owner-gated on BROWSER-ACCEPTANCE; implementation and automated checks are complete.
+Status: In progress; implementation and automated checks complete; browser acceptance authorized.
 Order: 1 of 1.
 Scope: Six everyday challenges, personal difficulty review, an AGREE signature, and an honest return.
 Execution: Units 1–4 in order, one unit at a time; drain-plans implementation authorized.
-NEXT: After an explicit browser-testing request, complete units 2/4 observed acceptance in local demo/isolated fixtures.
+NEXT: Complete units 2/4 observed acceptance in local demo/isolated fixtures without another permission question.
 Exit: Keep this plan open for the multi-scenario interaction/animation session; its acceptance is not yet proved.
 Coordination: [Index](README.md) · [TODO](TODO.md) · [Blockers](BLOCKERS.md).
 
@@ -27,7 +27,7 @@ The content draws on graded practice and comparing predictions with observed exp
 - [The artwork notes](../../art-direction.md) describe six fixed raster poses, a baked checkerboard, and crop/blend workarounds. The atlas has no independently movable paw or arm. Longer writing needs suitable foreground artwork and motion; selecting existing poses alone cannot supply it.
 - [Browser tools](../../lib/webmcp.ts) currently expose a 900 ms `press_and_seal` contract. That contract must be retired when the mechanic changes; it cannot silently claim to perform the new trace.
 - [Signature tests](../../tests/signature.test.ts), [state compatibility tests](../../tests/pact-state.test.ts), and [persisted journeys](../../tests/persistence.test.ts) now own the replacement interaction invariants. Obsolete one-dimensional gesture tests were retired. [README](../../README.md) is the durable home for play instructions and verification limitations.
-- There is no existing `CONTEXT.md`, ADR index, or earlier plan to supersede. Adopt only this plan and the four planning files; do not add speculative architecture documents.
+- There is no existing `CONTEXT.md`, ADR index, or earlier plan to supersede. Adopt only this plan and the three planning files; do not add speculative architecture documents.
 
 ## Agreed design
 
@@ -157,11 +157,11 @@ Acceptance:
 - Inspect the full signing and release animation in motion. A screenshot or state mutation alone cannot prove gesture quality. Keep the user-visible action criterion readable and the guardian present throughout all three beats.
 - Any scripted outcome is identified as test data in demo/isolated fixtures. Do not perform or claim a real conversation, recipient response, or confidence gain for verification.
 - If a required scenario cannot be exercised, keep the unit open with the concrete missing evidence. Put an owner-only setup action in BLOCKERS only when it actually requires the owner; do not invent a gate from a hypothetical limitation.
-- This plan authorizes no deployment by itself. When implementation is complete, put any pending website release and its observable drain criterion in RELEASE; a later authorized deployment must read the live site to verify it. Do not add release entries for this documentation-only planning commit.
+- This plan authorizes no deployment by itself. The repository owner does not want a release manifest for now; follow AGENTS.md. A later authorized deployment must read the live site to verify it.
 
 ## Exit test
 
-Close only after all four units meet their acceptance criteria, durable instructions and invariants have tracked homes, and Open findings is empty or each finding has been re-homed to TODO. A deployment command alone does not close the plan. Any remaining release work must fit its RELEASE entry; a multi-step acceptance session keeps the plan open with that reason stated in the header.
+Close only after all four units meet their acceptance criteria, durable instructions and invariants have tracked homes, and Open findings is empty or each finding has been re-homed to TODO. A deployment command alone does not close the plan. A multi-step acceptance session keeps the plan open with that reason stated in the header; deployment remains a separately requested action.
 
 Delete the completed plan and its index/TODO references in a separate commit after its durable facts are re-homed. Git history is the archive. Keep the rolling COMPLETED outcome separate from release status.
 
@@ -177,4 +177,4 @@ Delete the completed plan and its index/TODO references in a separate commit aft
 
 ## Open findings
 
-- **BROWSER-ACCEPTANCE (units 2 and 4)** — Await an explicit local browser-testing request under the installed Sites instructions. Then run one successful isolated/demo pass per required scenario, including real browser touch events, mouse, keyboard/taps, interruption/reload, save errors, reduced motion/mute, and phone/desktop moving crop/nib/mark inspection. Observe comfortable 8–12 second tracing without introducing a time gate. See [owner blocker](BLOCKERS.md).
+- **BROWSER-ACCEPTANCE (units 2 and 4)** — The owner has authorized acceptance testing as routine repository work (see AGENTS.md). Run one successful isolated/demo pass per required scenario, including real browser touch events, mouse, keyboard/taps, interruption/reload, save errors, reduced motion/mute, and phone/desktop moving crop/nib/mark inspection. Observe comfortable 8–12 second tracing without introducing a time gate.
