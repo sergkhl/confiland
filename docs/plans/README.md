@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Six authored actions and the versioned daily pact state are implemented. Next: unit 2, the connected signature and guardian motion; then review suggestions and integrated verification.
+1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Choices and signature implementation are committed; observed signature acceptance is owner-gated on BROWSER-ACCEPTANCE. Next actionable work: unit 3 return suggestions, then unit 4 automated checks/documentation.
 
 [Workstreams](TODO.md) · [Pending releases](RELEASE.md) · [Owner blockers](BLOCKERS.md).

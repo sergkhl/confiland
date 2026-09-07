@@ -1,4 +1,4 @@
-import { DAILY_KEY, DEMO_KEY, LEGACY_DAILY_KEY, LEGACY_DEMO_KEY, migrateLegacy, newState, parseState, transitionPact, type PactEvent, type PactState } from './pact-state.ts';
+import { DAILY_KEY, DEMO_KEY, LEGACY_DAILY_KEY, LEGACY_DEMO_KEY, migrateLegacy, newState, parseState, transitionPact, type PactEvent, type PactState } from './ritual.ts';
 export type Mode = 'daily' | 'demo';
 export type Store = Pick<Storage, 'getItem' | 'setItem'>;
 const keyFor = (mode: Mode) => mode === 'daily' ? DAILY_KEY : DEMO_KEY;

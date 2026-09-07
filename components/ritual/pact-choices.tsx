@@ -1,5 +1,5 @@
 import { CHALLENGES, PRACTICES, EFFORTS, PREDICTIONS, actionsFor, actionAt, type Practice, type Effort, type Prediction } from '@/lib/challenges';
-import type { PactEvent, Ritual } from '@/lib/pact-state';
+import type { PactEvent, Ritual } from '@/lib/ritual';
 
 export function PactChoices({ ritual, send, disabled = false }: { ritual: Ritual; send: (event: PactEvent) => unknown; disabled?: boolean }) {
   const action = ritual.selected ? CHALLENGES[ritual.selected] : null;
