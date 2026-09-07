@@ -210,6 +210,7 @@ export function Signature({ ritual, send, onMotion }: Props) {
         </button>
         <div
           className="writing-paw"
+          data-facing={position.x >= 436 ? 'left' : 'right'}
           aria-hidden="true"
           style={{
             left: `${(position.x / VIEWBOX.width) * 100}%`,

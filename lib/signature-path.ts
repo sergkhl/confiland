@@ -169,7 +169,15 @@ export function advanceTrace(progress: number, from: Point, to: Point): number {
   if (!travel || travel > 10000) return progress;
   const steps = Math.ceil(travel / 2),
     stride = travel / steps;
-  let accepted = distanceAt(progress),
+  // CSS pixels round differently at each viewport size. Capture only the end of
+  // the current, nearly finished segment so a rounded corner cannot strand ink.
+  const captureCorner = (length: number, point: Point): number => {
+    const segment = segmentAt(length);
+    return segment.end - length <= 3 && distance(point, segment.b) <= 3
+      ? segment.end
+      : length;
+  };
+  let accepted = captureCorner(distanceAt(progress), from),
     previous = from;
   for (let i = 1; i <= steps; i++) {
     const point = mix(from, to, i / steps),
@@ -201,7 +209,7 @@ export function advanceTrace(progress: number, from: Point, to: Point): number {
     }
     previous = point;
   }
-  return Math.max(progress, progressAt(accepted));
+  return Math.max(progress, progressAt(captureCorner(accepted, to)));
 }
 /** Input ownership is ephemeral. A reload or cancellation cannot serialize permission to seal. */
 export class TraceSession {

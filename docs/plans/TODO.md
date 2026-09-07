@@ -2,13 +2,14 @@
 
 # TODO
 
-- **Meaningful daily confidence practice** — In progress. [Real-world pacts](2026-09-07-real-world-pacts.md) are implemented and pass local automated checks. Resume browser interaction/animation acceptance in units 2/4; no separate test permission is needed.
+- **Meaningful daily confidence practice** — In progress. [Real-world pacts](2026-09-07-real-world-pacts.md) pass 34 automated tests and observed mouse/keyboard/button demo journeys. Units 2/4 retain true touch, continuous motion, reduced-motion, and browser recovery/date scenarios requiring additional test capabilities, with no permission gate.
 
 # COMPLETED
 
 - Six authored everyday actions and versioned pact choices preserve older signed actions and reject stale or unsaved changes.
 - Explicit Done/Tried/Not today review branches and bounded per-practice suggestions preserve the player's account and choice.
 - Automated pact/storage/geometry/tool checks and durable play, compatibility, and art instructions cover the implemented flow.
+- Browser rehearsals cover both practices and all outcomes; corner rounding, atlas bleed, and brush/text overlap are repaired.
 
 # VALIDATION
 

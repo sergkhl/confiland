@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Implementation and automated checks are complete. Resume units 2/4 browser interaction and animation acceptance under the repository's standing testing authorization.
+1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Implementation, 34 automated tests, and mouse/keyboard/button demo journeys pass. Units 2/4 retain true touch, continuous motion, reduced-motion, and browser recovery/date evidence that needs additional test capabilities; testing is already authorized.
 
 [Workstreams](TODO.md) · [Owner blockers](BLOCKERS.md).

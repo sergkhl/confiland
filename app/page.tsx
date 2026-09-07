@@ -205,7 +205,7 @@ export default function Workshop() {
     phase === 'choosing'
       ? 'A pact for today'
       : phase === 'tracing'
-        ? 'Your hand. His word.'
+        ? 'Your hand. His word'
         : phase === 'away'
           ? 'Out into the day'
           : phase === 'reviewing'

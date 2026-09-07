@@ -47,6 +47,41 @@ void test('ordered samples follow every authored turn and retraced intersection'
   }
   assert.equal(input.progress, 1);
 });
+void test('rounded browser pixels traverse every corner on desktop and phone', () => {
+  for (const width of [506, 330, 270]) {
+    const bounds = {
+      left: 36.3,
+      top: 365.9453125,
+      width,
+      height: (width * 205) / 580,
+    };
+    const rounded = (point: { x: number; y: number }) =>
+      normalizePoint(
+        Math.round(bounds.left + (point.x * width) / 580),
+        Math.round(bounds.top + (point.y * bounds.height) / 205),
+        bounds,
+      );
+    const input = new TraceSession();
+    assert.equal(input.begin(1, 'fixture', 0, rounded(pointAt(0))), true);
+    for (const segment of SEGMENTS) {
+      const progress = input.move(1, 'fixture', rounded(segment.b));
+      assert.ok(
+        Math.abs(distanceAt(progress) - segment.end) <= 3,
+        `Rounded ${width}px turn was not reached: ${segment.end}`,
+      );
+    }
+    assert.equal(input.progress, 1);
+    assert.equal(input.release(1, 'fixture', rounded(pointAt(1)), 1), true);
+  }
+});
+void test('a saved trace just short of a rounded corner can resume around it', () => {
+  const corner = SEGMENTS[0];
+  const input = new TraceSession();
+  const saved = progressAt(corner.end - 0.4);
+  input.begin(1, 'fixture', saved, pointAt(saved));
+  input.move(1, 'fixture', SEGMENTS[1].b);
+  assert.ok(Math.abs(distanceAt(input.progress) - SEGMENTS[1].end) < 0.001);
+});
 void test('a diagonal jump or later letter cannot skip the path', () => {
   assert.equal(new TraceSession().begin(1, 'fixture', 0, pointAt(0.8)), false);
   assert.ok(advanceTrace(0, pointAt(0), pointAt(1)) < 0.1);

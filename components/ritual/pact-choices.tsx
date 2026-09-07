@@ -110,10 +110,11 @@ export function PactChoices({
                       })
                     }
                   >
-                    Try{' '}
-                    {CHALLENGES[
-                      actionAt(ritual.practice, action.step - 1)
-                    ].label.toLowerCase()}
+                    Try:{' '}
+                    {
+                      CHALLENGES[actionAt(ritual.practice, action.step - 1)]
+                        .label
+                    }
                   </button>
                 </>
               ) : (
