@@ -1,10 +1,10 @@
 # A continuous stretch slider, speaking guardian, and stronger momentum challenge
 
-Status: Local implementation complete; the owner-authorized public GitHub Pages deployment is in progress. Physical-touch and continuous-motion evidence limits are recorded below.
+Status: Complete and publicly hosted at https://confiland.globesoul.com/ through GitHub Pages. Physical-touch and continuous-motion evidence limits are recorded below.
 Order: 1 of 1.
 Authority: Owner-approved continuous-slider replacement plan on 2026-09-08; existing image-editing authorization and AGENTS.md acceptance authority remain in effect.
-NEXT: Publish and verify the static build at confiland.globesoul.com through GitHub Pages; the owner explicitly authorized public repository visibility and hosting on 2026-09-08.
-Exit: Requested implementation and available local acceptance pass; identify unavailable physical-touch/motion surfaces precisely. Deployment remains separate.
+NEXT: None for the approved implementation and GitHub Pages deployment. Pushes to main now run the validated deployment workflow.
+Exit: Requested implementation, available acceptance and the explicitly authorized public GitHub Pages deployment pass; unavailable physical-touch/motion surfaces remain identified separately.
 Coordination: [Index](README.md) · [TODO](TODO.md) · [Blockers](BLOCKERS.md).
 
 ## Approved design
@@ -51,7 +51,7 @@ Review stays sequential: outcome → applicable comparison → effort, or outcom
 
 ## Completion
 
-The current implementation and all available local acceptance checks pass. The free slider, player-preview balloon, Doable shortcut, stronger momentum and longer reactions are enabled in the local demo. The existing transparent assets and hot-reload instructions are preserved. No release manifest, substitute repository status file, deployment or publication is introduced.
+The current implementation and all available local acceptance checks pass. The free slider, player-preview balloon, Doable shortcut, stronger momentum and longer reactions are enabled in the local demo. The existing transparent assets and hot-reload instructions are preserved. No release manifest or substitute repository status file is introduced. Public GitHub Pages hosting was separately authorized and verified below.
 
 ## GitHub Pages deployment — 2026-09-08
 
@@ -59,7 +59,7 @@ The owner explicitly requested a public repository and GitHub Pages hosting for 
 
 Add a conditional static-export build while retaining the existing local/HMR and Worker build. Commit CNAME and no-Jekyll markers, upload only `dist/client`, and deploy from a pinned GitHub Actions workflow after tests, type checks, lint and artifact validation. Verify the deployed commit, HTTPS response, assets and browser hydration in demo mode. Keep implementation and observed hosting evidence in this plan and the existing index/TODO; create no release/status file.
 
-Local static export and all 55 tests, TypeScript and targeted lint pass. The exported app rendered the transparent guardian and free slider, completed twenty taps, retained unsigned readiness through reload, and explicitly sealed without a server. That check identified a framework RSC prefetch error on the root Link; the one-route home control now uses an ordinary anchor. The corrected export reloaded with no fresh browser warnings/errors, all thirteen transparent assets decoded, and the saved pact intact. The normal Worker build and development HTTP 200 also pass; GitHub deployment verification remains next.
+Local static export and all 55 tests, TypeScript and targeted lint pass. The exported app rendered the transparent guardian and free slider, completed twenty taps, retained unsigned readiness through reload, and explicitly sealed without a server. That check identified a framework RSC prefetch error on the root Link; the one-route home control now uses an ordinary anchor. The corrected export reloaded with no fresh browser warnings/errors, all thirteen transparent assets decoded, and the saved pact intact. The normal Worker build and development HTTP 200 also pass; Public GitHub deployment and live browser verification subsequently passed as recorded below.
 
 ## Validation Log
 
@@ -116,6 +116,10 @@ Earlier entries below describe superseded implementations and remain historical 
 - 2026-09-08 — Current flow and layout acceptance: a Doable Done review went directly to effort, summary and Close pact. A recorded-concern Tried review retained Can't tell and Too much; Back correction to Not today replaced comparison/effort with No opportunity and explicit closure. Phone 375 × 667 and 390 × 844, preview 562 × 734 and 612 × 734, desktop 1280 × 900 and landscape 844 × 390 retained separate stage/panel areas and viewport-sized documents. The balloon was moved relative to rendered character size to avoid drifting away on wide/short screens. At 200% root text it retained whole words and face clearance; at 390 × 844 the stage/panel were each 330 px and the panel alone scrolled over 504 px of stretch content. Enlarged momentum at 375 × 667 used a 160 px target with all buttons at least 44 px, and only its 241.5 px panel scrolled. The normal 104 px target and one changing momentum heading remained stable. Enlarged-text and failure fixtures were removed; no hosted state was changed.
 
 - 2026-09-08 — Final continuous-slider verification: 55/55 tests, TypeScript, targeted lint, production build and git diff --check pass. The build retains the known non-failing Vinext route-classification notice. Settled measurements confirm all six viewport sizes listed above with page dimensions equal to viewport dimensions; landscape uses a 134 px stage above a 134 px panel scrolling 211 px of stretch content. Every observed control remains at least 44 px tall. Intermediate HMR logs recorded the intentionally removed STRETCH_LEVELS export while dependent files were being edited; the completed app reload has no fresh warning/error logs. Final preview is reset to 562 × 734, 16 px root text, all thirteen assets loaded/decoded, and an unanswered “Your call.” slider in an isolated demo. Existing hot-reload instructions are byte-for-byte preserved; all temporary acceptance overrides are removed. No RELEASE.md, substitute repository status file, deployment or publication was created.
+
+- 2026-09-08 — Public GitHub Pages deployment: repository sergkhl/confiland is PUBLIC. Workflow [34234546616](https://github.com/sergkhl/confiland/actions/runs/34234546616) built and deployed commit 7ccb097594db12ef1f8eff06b9b324ad278f52d1 successfully; the build job ran all 55 tests, TypeScript, targeted lint, static export and artifact checks. GitHub Pages deployment 6329167267 reports success at https://confiland.globesoul.com/. Its domain is confiland.globesoul.com, build type workflow, TLS certificate approved and HTTPS enforced. The observed DNS CNAME resolves to sergkhl.github.io. Both HTTP and the default https://sergkhl.github.io/confiland/ URL redirect to the HTTPS custom-domain root.
+
+- 2026-09-08 — Live static-site acceptance: HTTPS home returns 200 with Confidence Workshop content. All 23 referenced/runtime assets return successful non-HTML responses: 3 fonts, 5 JavaScript assets, 1 CSS, favicon and 13 WebP guardian assets. Every guardian asset matches the committed source bytes. In the deployed browser demo, artwork fully decoded and the three choices hydrated; request → stretch position 55 → recorded concern → untimed momentum saved two keyboard and three mouse activations as charge 25. Reload retained that charge and pace. Fifteen further taps prepared an explicit seal, then Tried → Can't tell → A stretch → Close pact completed. No warning/error originated from the public domain during the journey; the earlier local prefetch error is resolved. These are browser mouse/keyboard and screenshot observations, not physical-touch or continuous-motion proof. Daily outcomes were not scripted, and the original Sites deployment was not changed.
 
 ## Remaining evidence limits
 

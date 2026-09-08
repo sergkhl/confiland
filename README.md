@@ -54,7 +54,7 @@ The existing Sites/Vinext build targets Cloudflare Workers. `.openai/hosting.jso
 
 ## GitHub Pages
 
-The public GitHub repository publishes the site at **https://confiland.globesoul.com/**. `.github/workflows/pages.yml` runs on pushes to `main` and manual dispatch. It installs the lockfile dependencies, runs tests, TypeScript and targeted lint, then builds and validates the static artifact before deploying through the `github-pages` environment. GitHub Actions versions are pinned to reviewed release commits. The workflow uses the built-in GitHub token and OpenID Connect; it needs no deployment secret.
+The public GitHub repository publishes the site at **https://confiland.globesoul.com/**. `.github/workflows/pages.yml` runs on pushes to `main` and manual dispatch. It installs the lockfile dependencies, runs tests, TypeScript and targeted lint, then builds and validates the static artifact before deploying through the `github-pages` environment. GitHub Actions versions are pinned to release commits. The workflow uses the built-in GitHub token and OpenID Connect; it needs no deployment secret.
 
 `npm run build:pages` sets `CONFILAND_STATIC_EXPORT=1` for a Vinext `output: 'export'` build. Only this mode omits the Sites/Cloudflare runtime plugins. Its public output is `dist/client/`, including the generated HTML, client scripts/styles, static RSC payload, fonts and guardian assets. The workflow uploads only that public directory. The home link uses ordinary document navigation, avoiding unnecessary RSC prefetch on this single-route static site.
 

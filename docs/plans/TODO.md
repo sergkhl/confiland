@@ -2,10 +2,11 @@
 
 # TODO
 
-- [Publish to GitHub Pages](2026-09-07-real-world-pacts.md#github-pages-deployment--2026-09-08): make the repository public, deploy the static build, configure confiland.globesoul.com with HTTPS, and verify the live demo. Explicitly authorized on 2026-09-08.
+_None for the approved implementation and public GitHub Pages deployment._
 
 # COMPLETED
 
+- [GitHub Pages hosting](2026-09-07-real-world-pacts.md#github-pages-deployment--2026-09-08): public repository, static export, pinned deployment workflow, confiland.globesoul.com custom domain and enforced HTTPS. CI, 23 live assets and the deployed demo journey pass; pushes to main publish automatically.
 - [Continuous stretch, speaking guardian and stronger momentum](2026-09-07-real-world-pacts.md): free slider, one live HTML/CSS balloon, atomic Doable shortcut, applicable concerns and route-specific Back preserve the compact three-challenge flow.
 - Momentum now uses twenty steady taps, 450 ms grace and 12 points/sec decay, one heading and the separate explicit seal. Untimed mode, pause/reload, readiness latching and choice locking remain intact.
 - Saved answers hold 1.2 seconds, charging poses at least 650 ms with only the newest pending pose, and the seal lasts 2.4 seconds. Shared timings keep CSS and cleanup aligned; reduced motion keeps static faces, balloon and marks.
