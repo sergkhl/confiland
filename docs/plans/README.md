@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Startup loading screen](2026-09-07-real-world-pacts.md) — Complete locally; owner-requested publication is in progress. Initial HTML waits for restored state and all thirteen decoded images, with progress, retry and a reduced-motion-aware reveal. All 81 tests, TypeScript, targeted lint, static/Worker builds and local browser acceptance pass. Next: verify the existing public Pages deployment and live demo; evidence limits remain in the plan.
+1. [Startup loading screen](2026-09-07-real-world-pacts.md) — Complete and published at confiland.globesoul.com. Initial HTML waits for restored state and all thirteen decoded images, with progress, retry and a reduced-motion-aware reveal. All 81 tests, TypeScript, targeted lint, static/Worker builds and local browser acceptance pass. GitHub Pages confirms the implementation commit deployed; 23 live assets and the demo through saved-step reload pass. Evidence limits remain in the plan.
 
 [Workstreams](TODO.md) · [Owner blockers](BLOCKERS.md).

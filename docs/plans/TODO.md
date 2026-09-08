@@ -2,11 +2,11 @@
 
 # TODO
 
-- [Publish startup loading screen](2026-09-07-real-world-pacts.md): owner requested publication on 2026-09-08. Publish the validated update through the existing public GitHub Pages workflow, then verify deployment identity, live assets and the isolated demo.
+_None for the approved implementation and publication._
 
 # COMPLETED
 
-- [Startup loading screen](2026-09-07-real-world-pacts.md#startup-loading-screen): initial HTML loading view, all thirteen decoded assets plus saved-pact readiness, genuine progress, keyboard-accessible retries, a 15-second slow notice and a short reduced-motion-aware reveal. Cached/delayed/failed assets, unavailable storage, restored phases, replay/mode isolation and responsive/enlarged-text fixtures pass. No saved-data, dependency or artwork changes.
+- [Startup loading screen](2026-09-07-real-world-pacts.md#startup-loading-screen): initial HTML loading view, all thirteen decoded assets plus saved-pact readiness, genuine progress, keyboard-accessible retries, a 15-second slow notice and a short reduced-motion-aware reveal. Cached/delayed/failed assets, unavailable storage, restored phases, replay/mode isolation and responsive/enlarged-text fixtures pass. Owner-requested public deployment, 23 live assets and the demo through saved-step reload are verified in the plan. No saved-data, dependency or artwork changes.
 - [Recorded high five and live guardian feedback](2026-09-07-real-world-pacts.md#tactile-manga-sound-effects): bundled CC0 palm clap at the strike, smooth elastic rubbing and one pop per effort-label change; the existing confident/determined/reassuring poses follow previews immediately. Mute, cancellation, lazy loading and failed saves cannot replay feedback. Owner-requested GitHub Pages publication, all 24 public assets and the live demo through explicit seal/reload/closure pass. Browser/signal evidence and physical listening limits are recorded.
 - [GitHub Pages hosting](2026-09-07-real-world-pacts.md#github-pages-deployment--2026-09-08): public repository, static export, pinned deployment workflow, confiland.globesoul.com custom domain and enforced HTTPS. CI, 23 live assets and the deployed demo journey pass; pushes to main publish automatically.
 - [Continuous stretch, speaking guardian and stronger momentum](2026-09-07-real-world-pacts.md): free slider, one live HTML/CSS balloon, atomic Doable shortcut, applicable concerns and route-specific Back preserve the compact three-challenge flow.
