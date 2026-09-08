@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Real-world pacts with the guardian](2026-09-07-real-world-pacts.md) — In progress. Implementation, 34 automated tests, and mouse/keyboard/button demo journeys pass. Units 2/4 retain true touch, continuous motion, reduced-motion, and browser recovery/date evidence that needs additional test capabilities; testing is already authorized.
+1. [Three meaningful actions with the guardian always in view](2026-09-07-real-world-pacts.md) — In progress. Compact flow, compatibility, 40 tests, build, and available browser checks pass. Transparent artwork remains blocked at the first-alpha gate; Python extraction authorization is pending.
 
 [Workstreams](TODO.md) · [Owner blockers](BLOCKERS.md).

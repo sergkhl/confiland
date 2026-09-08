@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import {
   useCallback,
   useEffect,
@@ -20,6 +21,7 @@ import {
   type Point,
 } from '@/lib/signature-path';
 import type { PactEvent, Ritual } from '@/lib/ritual';
+import { TRANSPARENT_ARTWORK_READY } from '@/lib/guardian';
 
 type Props = {
   ritual: Ritual;
@@ -31,6 +33,7 @@ export function Signature({ ritual, send, onMotion }: Props) {
     queue = useRef<{ pointer: number; point: Point }[]>([]),
     frame = useRef<number | null>(null);
   const surface = useRef<HTMLButtonElement | null>(null);
+  const sealButton = useRef<HTMLButtonElement | null>(null);
   const current = useRef(ritual),
     [active, setActive] = useState(false),
     [hint, setHint] = useState('');
@@ -78,6 +81,10 @@ export function Signature({ ritual, send, onMotion }: Props) {
   useEffect(() => {
     surface.current?.focus({ preventScroll: true });
   }, []);
+  useEffect(() => {
+    if (ritual.trace.progress === 1)
+      sealButton.current?.focus({ preventScroll: true });
+  }, [ritual.trace.progress]);
   useEffect(() => {
     const hidden = () => {
       if (document.visibilityState === 'hidden') cancel();
@@ -152,72 +159,94 @@ export function Signature({ ritual, send, onMotion }: Props) {
   return (
     <div className={`signature ${active ? 'is-writing' : 'is-paused'}`}>
       <div className="signature-paper">
-        <button
-          ref={surface}
-          className="signature-surface"
-          aria-label={
-            progress === 1
-              ? 'AGREE is complete. Use Seal this pact.'
-              : 'Trace AGREE'
-          }
-          aria-describedby="signature-help"
-          onClick={(event) => {
-            if (event.detail !== 0 || progress === 1) return;
-            cancel();
-            send(
-              {
-                type: 'progress',
-                pathId: PATH_ID,
-                progress: nextStroke(progress),
-              },
-              ritual.id,
-            );
-          }}
-          onPointerDown={begin}
-          onPointerMove={move}
-          onPointerUp={release}
-          onPointerCancel={cancel}
-          onLostPointerCapture={cancel}
-          onBlur={cancel}
-          onContextMenu={(event) => event.preventDefault()}
-        >
-          <svg
-            className="signature-canvas"
-            viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
-            preserveAspectRatio="none"
-            aria-hidden="true"
+        <div className="signature-trace">
+          <button
+            ref={surface}
+            className="signature-surface"
+            aria-label={
+              progress === 1
+                ? 'AGREE is complete. Use Seal this pact.'
+                : 'Trace AGREE'
+            }
+            aria-describedby="signature-help"
+            onClick={(event) => {
+              if (event.detail !== 0 || progress === 1) return;
+              cancel();
+              send(
+                {
+                  type: 'progress',
+                  pathId: PATH_ID,
+                  progress: nextStroke(progress),
+                },
+                ritual.id,
+              );
+            }}
+            onPointerDown={begin}
+            onPointerMove={move}
+            onPointerUp={release}
+            onPointerCancel={cancel}
+            onLostPointerCapture={cancel}
+            onBlur={cancel}
+            onContextMenu={(event) => event.preventDefault()}
           >
-            <path className="signature-guide" d={PATH_D} />
-            <path className="signature-next" d={nextGuide(progress)} />
-            <path
-              className="signature-ink"
-              d={PATH_D}
-              strokeDasharray={`${distanceAt(progress)} ${PATH_LENGTH + 1}`}
-            />
-            <circle
-              className="signature-ring"
-              cx={position.x}
-              cy={position.y}
-              r="15"
-            />
-            <circle
-              className="signature-point"
-              cx={position.x}
-              cy={position.y}
-              r="3.5"
-            />
-          </svg>
-        </button>
-        <div
-          className="writing-paw"
-          data-facing={position.x >= 436 ? 'left' : 'right'}
-          aria-hidden="true"
-          style={{
-            left: `${(position.x / VIEWBOX.width) * 100}%`,
-            top: `${(position.y / VIEWBOX.height) * 100}%`,
-          }}
-        >
-          <div />
+            <svg
+              className="signature-canvas"
+              viewBox={`0 0 ${VIEWBOX.width} ${VIEWBOX.height}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path className="signature-guide" d={PATH_D} />
+              <path className="signature-next" d={nextGuide(progress)} />
+              <path
+                className="signature-ink"
+                d={PATH_D}
+                strokeDasharray={`${distanceAt(progress)} ${PATH_LENGTH + 1}`}
+              />
+              <circle
+                className="signature-ring"
+                cx={position.x}
+                cy={position.y}
+                r="15"
+              />
+              <circle
+                className="signature-point"
+                cx={position.x}
+                cy={position.y}
+                r="3.5"
+              />
+            </svg>
+          </button>
+          <div
+            className={`writing-paw ${TRANSPARENT_ARTWORK_READY ? '' : 'legacy-writing-paw'}`}
+            data-facing={position.x >= 436 ? 'left' : 'right'}
+            aria-hidden="true"
+            style={{
+              left: `${(position.x / VIEWBOX.width) * 100}%`,
+              top: `${(position.y / VIEWBOX.height) * 100}%`,
+            }}
+          >
+            {!TRANSPARENT_ARTWORK_READY && <div className="legacy-paw-art" />}
+            {TRANSPARENT_ARTWORK_READY && (
+              <Image
+                unoptimized
+                className="paw-writing"
+                src="/guardian/writing-paw.png"
+                alt=""
+                width="128"
+                height="128"
+              />
+            )}
+            {TRANSPARENT_ARTWORK_READY && (
+              <Image
+                unoptimized
+                className="paw-lifted"
+                src="/guardian/lifted-paw.png"
+                alt=""
+                width="128"
+                height="128"
+              />
+            )}
+          </div>
         </div>
       </div>
       <p id="signature-help" className="signature-help">
@@ -226,7 +255,6 @@ export function Signature({ ritual, send, onMotion }: Props) {
           : 'Take the red ring along the next red stroke. Lift to pause.'}
       </p>
       <div className="signature-alternative">
-        <span className="small-note">Prefer taps or a keyboard?</span>
         <button
           className="stroke-button"
           disabled={progress === 1}
@@ -248,6 +276,7 @@ export function Signature({ ritual, send, onMotion }: Props) {
           Write next stroke
         </button>
         <button
+          ref={sealButton}
           className="primary-button"
           disabled={progress !== 1}
           onClick={() => {

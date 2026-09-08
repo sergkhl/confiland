@@ -1,161 +1,161 @@
+import { useState } from 'react';
 import {
+  ACTION_IDS,
   CHALLENGES,
-  PRACTICES,
   EFFORTS,
   PREDICTIONS,
-  actionsFor,
-  actionAt,
-  type Practice,
+  catalogAction,
   type Effort,
   type Prediction,
 } from '@/lib/challenges';
-import { suggestedAction } from '@/lib/review';
-import type { ClosedPact, PactEvent, Ritual } from '@/lib/ritual';
+import { nextChoice, type ChoiceStep } from '@/lib/pact-flow';
+import type { PactEvent, Ritual } from '@/lib/ritual';
+import { ActionDetails, PromptTitle } from './action-details';
 
 export function PactChoices({
   ritual,
-  previous = null,
   send,
-  disabled = false,
 }: {
   ritual: Ritual;
-  previous?: ClosedPact | null;
-  send: (event: PactEvent) => unknown;
-  disabled?: boolean;
+  send: (event: PactEvent) => boolean;
 }) {
-  const action = ritual.selected ? CHALLENGES[ritual.selected] : null;
-  const suggested = suggestedAction(previous);
+  const [step, setStep] = useState<ChoiceStep>(() => nextChoice(ritual));
+  const [details, setDetails] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const action = ritual.selected
+    ? catalogAction(ritual.catalog, ritual.selected)
+    : null;
+  if (details && action)
+    return <ActionDetails action={action} onBack={() => setDetails(false)} />;
+  if (paused)
+    return (
+      <section className="unsigned-pause">
+        <PromptTitle>Nothing signed. Take your time.</PromptTitle>
+        <p>Your choice is saved for when it fits.</p>
+        <button className="primary-button" onClick={() => setPaused(false)}>
+          Continue choosing →
+        </button>
+        <button
+          className="text-button"
+          onClick={() => {
+            setPaused(false);
+            setStep('action');
+          }}
+        >
+          Choose another action
+        </button>
+      </section>
+    );
   return (
-    <div className="pact-choices">
-      <fieldset disabled={disabled}>
-        <legend>Practice for today</legend>
-        <div className="chip-row">
-          {(Object.keys(PRACTICES) as Practice[]).map((practice) => (
-            <button
-              key={practice}
-              aria-pressed={ritual.practice === practice}
-              onClick={() => send({ type: 'practice', practice })}
-            >
-              {PRACTICES[practice]}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      {suggested && (
-        <p className="practice-suggestion">
-          From your last {PRACTICES[ritual.practice].toLowerCase()} review:{' '}
-          <button
-            className="text-button"
-            disabled={disabled}
-            onClick={() => send({ type: 'choose', action: suggested })}
-          >
-            {CHALLENGES[suggested].label}
+    <section className="pact-choices" data-choice-step={step}>
+      {step !== 'action' && action && (
+        <div className="selected-action">
+          <span>{action.label}</span>
+          <button className="text-button" onClick={() => setDetails(true)}>
+            Details
           </button>
-          <span>You can choose any step.</span>
-        </p>
-      )}
-      <fieldset disabled={disabled}>
-        <legend>
-          Choose an action <span>Suggested steps · all are open</span>
-        </legend>
-        <div className="pact-cards">
-          {actionsFor(ritual.practice).map((id) => (
-            <button
-              key={id}
-              className="pact-card"
-              aria-pressed={ritual.selected === id}
-              onClick={() => send({ type: 'choose', action: id })}
-            >
-              <span className="step-number">0{CHALLENGES[id].step}</span>
-              <span>{CHALLENGES[id].label}</span>
-            </button>
-          ))}
         </div>
-      </fieldset>
-      {action && (
+      )}
+      <PromptTitle>
+        {step === 'action'
+          ? 'Choose your challenge.'
+          : step === 'effort'
+            ? 'How does it feel today?'
+            : 'Anything on your mind?'}
+      </PromptTitle>
+      {step === 'action' && (
         <>
-          <div className="pact-preview">
-            <p>{action.text}</p>
-            <span>{action.criterion}</span>
-            <details>
-              <summary>An opening line</summary>
-              <p>{action.example}</p>
-            </details>
-          </div>
-          <fieldset disabled={disabled}>
-            <legend>How does this feel today?</legend>
-            <div className="chip-row">
-              {(Object.keys(EFFORTS) as Effort[]).map((effort) => (
-                <button
-                  key={effort}
-                  aria-pressed={ritual.anticipated === effort}
-                  onClick={() => send({ type: 'anticipated', effort })}
-                >
-                  {EFFORTS[effort]}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          {ritual.anticipated === 'too_much' && (
-            <p className="guardian-note">
-              {action.step > 1 ? (
-                <>
-                  A smaller action is here, if it fits.{' '}
-                  <button
-                    className="text-button"
-                    onClick={() =>
-                      send({
-                        type: 'choose',
-                        action: actionAt(ritual.practice, action.step - 1),
-                      })
-                    }
-                  >
-                    Try:{' '}
-                    {
-                      CHALLENGES[actionAt(ritual.practice, action.step - 1)]
-                        .label
-                    }
-                  </button>
-                </>
-              ) : (
-                'This is the smallest suggested step. You can keep it or choose the other practice.'
-              )}
+          {ritual.catalogUpdated && (
+            <p className="catalog-notice">
+              Three new challenges. Choose the one that fits today.
             </p>
           )}
-          <fieldset disabled={disabled}>
-            <legend>Anything you think might happen?</legend>
-            <div className="chip-row">
-              {(Object.keys(PREDICTIONS) as Prediction[])
-                .filter((id) => ritual.practice === 'voice' || id !== 'decline')
-                .map((prediction) => (
-                  <button
-                    key={prediction}
-                    aria-pressed={ritual.prediction === prediction}
-                    onClick={() => send({ type: 'prediction', prediction })}
-                  >
-                    {PREDICTIONS[prediction]}
-                  </button>
-                ))}
+          <div className="action-list">
+            {ACTION_IDS.map((id, index) => (
               <button
-                aria-pressed={ritual.prediction === 'skip'}
-                onClick={() => send({ type: 'prediction', prediction: 'skip' })}
+                key={id}
+                className="action-card"
+                aria-pressed={ritual.selected === id}
+                onClick={() => {
+                  if (send({ type: 'choose', action: id })) setStep('effort');
+                }}
               >
-                Skip
+                <span
+                  className={'action-symbol symbol-' + index}
+                  aria-hidden="true"
+                >
+                  {['↗', '!', '≠'][index]}
+                </span>
+                <span>
+                  <strong>{CHALLENGES[id].label}</strong>
+                  <small>{CHALLENGES[id].cue}</small>
+                </span>
+                <span className="action-arrow" aria-hidden="true">
+                  →
+                </span>
               </button>
-            </div>
-          </fieldset>
-          <button
-            className="primary-button"
-            disabled={disabled || !ritual.anticipated || !ritual.prediction}
-            onClick={() => send({ type: 'begin' })}
-          >
-            Sign with the guardian <span aria-hidden="true">↗</span>
-          </button>
-          <p className="small-note">
-            You choose the action. The signature records your intent.
-          </p>
+            ))}
+          </div>
         </>
       )}
-    </div>
+      {step === 'effort' && (
+        <div className="chip-row three-choices">
+          {(Object.keys(EFFORTS) as Effort[]).map((effort) => (
+            <button
+              key={effort}
+              aria-pressed={ritual.anticipated === effort}
+              onClick={() => {
+                if (send({ type: 'anticipated', effort }))
+                  setStep('prediction');
+              }}
+            >
+              {EFFORTS[effort]}
+            </button>
+          ))}
+        </div>
+      )}
+      {step === 'prediction' && (
+        <>
+          <div className="chip-row prediction-choices">
+            {(Object.keys(PREDICTIONS) as Prediction[])
+              .filter((id) => ritual.practice === 'voice' || id !== 'decline')
+              .map((prediction) => (
+                <button
+                  key={prediction}
+                  aria-pressed={ritual.prediction === prediction}
+                  onClick={() => send({ type: 'begin', prediction })}
+                >
+                  {PREDICTIONS[prediction]}
+                </button>
+              ))}
+            <button
+              aria-pressed={ritual.prediction === 'skip'}
+              onClick={() => send({ type: 'begin', prediction: 'skip' })}
+            >
+              Skip
+            </button>
+          </div>
+          {ritual.anticipated === 'too_much' && (
+            <div className="gentle-exit">
+              <span>You can leave this unsigned.</span>
+              <button className="text-button" onClick={() => setStep('action')}>
+                Change action
+              </button>
+              <button className="text-button" onClick={() => setPaused(true)}>
+                Pause for now
+              </button>
+            </div>
+          )}
+        </>
+      )}
+      {step !== 'action' && (
+        <button
+          className="back-button"
+          onClick={() => setStep(step === 'prediction' ? 'effort' : 'action')}
+        >
+          ← Back
+        </button>
+      )}
+    </section>
   );
 }

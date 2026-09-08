@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CHALLENGES, actionsFor } from '../lib/challenges.ts';
+import { CHALLENGES, ACTION_IDS } from '../lib/challenges.ts';
 import {
   DAILY_KEY,
   DEMO_KEY,
@@ -46,31 +46,30 @@ class MemoryStore {
     this.values.set(key, value);
   }
 }
-void test('exactly six authored actions remain selectable with controllable criteria', () => {
-  assert.equal(Object.keys(CHALLENGES).length, 6);
-  for (const practice of ['contact', 'voice'] as const) {
-    assert.deepEqual(
-      actionsFor(practice).map((id) => CHALLENGES[id].step),
-      [1, 2, 3],
+void test('exactly three equally available actions require an authored contribution', () => {
+  assert.deepEqual(ACTION_IDS, ['conversation', 'request', 'opinion']);
+  for (const action of ACTION_IDS) {
+    assert.equal(
+      apply(newState(date), { type: 'choose', action }).current.selected,
+      action,
     );
-    for (const action of actionsFor(practice))
-      assert.equal(
-        apply(newState(date), { type: 'choose', action }).current.selected,
-        action,
-      );
+    assert.match(CHALLENGES[action].text, /^Today, I'll/);
   }
-  for (const action of Object.values(CHALLENGES))
-    assert.match(action.text, /^Today, I'll/);
+  assert.match(CHALLENGES.conversation.text, /short update.*open question/);
+  assert.match(
+    CHALLENGES.conversation.criterion,
+    /both parts.*reply is not required/i,
+  );
+  assert.match(CHALLENGES.request.text, /specific change.*explain why/);
+  assert.match(CHALLENGES.opinion.text, /different opinion.*one reason/);
   assert.match(CHALLENGES.request.criterion, /Agreement is not required/);
-  assert.match(CHALLENGES.opinion.criterion, /Agreement is not required/);
 });
 void test('Too much does not change choice; trace freezes all choice fields', () => {
   let s = apply(newState(date), { type: 'choose', action: 'opinion' });
   s = apply(s, { type: 'anticipated', effort: 'too_much' });
   assert.equal(s.current.selected, 'opinion');
   for (const event of [
-    { type: 'choose', action: 'greeting' },
-    { type: 'practice', practice: 'voice' },
+    { type: 'choose', action: 'conversation' },
     { type: 'anticipated', effort: 'manageable' },
     { type: 'prediction', prediction: 'stop' },
   ] as PactEvent[])
@@ -82,7 +81,7 @@ void test('Too much does not change choice; trace freezes all choice fields', ()
 });
 void test('explicit skip differs from an unanswered prediction or observation', () => {
   const s = apply(
-    apply(newState(date), { type: 'choose', action: 'greeting' }),
+    apply(newState(date), { type: 'choose', action: 'conversation' }),
     { type: 'anticipated', effort: 'manageable' },
   );
   assert.throws(() => apply(s, { type: 'begin' }));
@@ -205,7 +204,7 @@ void test('storage commits reread current state and save before exposing changes
     store,
     'daily',
     initial,
-    { type: 'choose', action: 'question' },
+    { type: 'choose', action: 'conversation' },
     date,
   );
   assert.throws(

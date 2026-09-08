@@ -10,6 +10,7 @@ import {
   type PactEvent,
   type PactState,
 } from './ritual.ts';
+import { CATALOG_VERSION } from './challenges.ts';
 export type Mode = 'daily' | 'demo';
 export type Store = Pick<Storage, 'getItem' | 'setItem'>;
 const keyFor = (mode: Mode) => (mode === 'daily' ? DAILY_KEY : DEMO_KEY);
@@ -30,7 +31,24 @@ export function loadPact(
 ): PactState {
   const key = keyFor(mode),
     raw = resetDemo && mode === 'demo' ? null : store.getItem(key);
-  if (raw !== null) return parseState(raw);
+  if (raw !== null) {
+    const saved = parseState(raw);
+    if (
+      saved.current.phase !== 'choosing' ||
+      saved.current.catalog === CATALOG_VERSION
+    )
+      return saved;
+    const next: PactState = {
+      ...saved,
+      revision: saved.revision + 1,
+      current: {
+        ...newState(saved.current.date, saved.current.id).current,
+        catalogUpdated: true,
+      },
+    };
+    store.setItem(key, JSON.stringify(next));
+    return next;
+  }
   const legacy =
     resetDemo && mode === 'demo'
       ? null

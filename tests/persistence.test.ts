@@ -50,7 +50,7 @@ function driver(mode: Mode = 'demo') {
 }
 function prepare(
   d: ReturnType<typeof driver>,
-  action: ActionId = 'question',
+  action: ActionId = 'conversation',
   prediction: 'skip' | 'stop' = 'skip',
 ) {
   for (const event of [
@@ -62,7 +62,7 @@ function prepare(
     d.send(event);
 }
 void test('isolated persisted journeys cover both practices, every outcome and prediction branch', () => {
-  for (const action of ['greeting', 'request'] as const)
+  for (const action of ['conversation', 'request'] as const)
     for (const outcome of ['done', 'tried', 'not_today'] as const)
       for (const prediction of ['skip', 'stop'] as const) {
         const d = driver();

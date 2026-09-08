@@ -1,31 +1,18 @@
 'use client';
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react';
+import Image from 'next/image';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import { PactChoices } from '@/components/ritual/pact-choices';
-import {
-  CHALLENGES,
-  EFFORTS,
-  COMPARISONS,
-  PREDICTIONS,
-  REASONS,
-  type Effort,
-  type Comparison,
-  type Reason,
-} from '@/lib/challenges';
+import { ReviewChoices, OUTCOMES } from '@/components/ritual/review-choices';
+import { ActionDetails, PromptTitle } from '@/components/ritual/action-details';
+import { Guardian } from '@/components/ritual/guardian';
+import { catalogAction } from '@/lib/challenges';
 import {
   DAILY_KEY,
   localDate,
-  reviewReady,
   type PactState,
   type PactEvent,
-  type Outcome,
 } from '@/lib/ritual';
 import {
   loadPact,
@@ -35,12 +22,12 @@ import {
 } from '@/lib/pact-storage';
 import { prepareAudio, ritualSound } from '@/lib/sound';
 import { Signature } from '@/components/ritual/signature';
-import { pointAt, type Point } from '@/lib/signature-path';
+import { guardianReaction } from '@/lib/review';
 import {
-  guardianReaction,
-  suggestedAction,
-  suggestionCopy,
-} from '@/lib/review';
+  guardianEmotion,
+  guardianSymbol,
+  TRANSPARENT_ARTWORK_READY,
+} from '@/lib/guardian';
 import { registerRitualTools } from '@/lib/webmcp';
 
 export default function Workshop() {
@@ -49,15 +36,16 @@ export default function Workshop() {
   const [muted, setMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [today, setToday] = useState('');
-  const [answeringId, setAnsweringId] = useState<string | null>(null);
-  const [motion, setMotion] = useState({ active: false, point: pointAt(0) });
-  const onMotion = useCallback(
-    (active: boolean, point: Point) => setMotion({ active, point }),
-    [],
+  const [cue, setCue] = useState<{ event: PactEvent; revision: number } | null>(
+    null,
   );
+  const [writing, setWriting] = useState(false);
+  const [details, setDetails] = useState(false);
+  const [loadedAt, setLoadedAt] = useState(0);
   const current = useRef<PactState | null>(null),
     modeRef = useRef<Mode>('daily'),
     mutedRef = useRef(false);
+  const onMotion = useCallback((active: boolean) => setWriting(active), []);
   const show = useCallback((next: PactState | null) => {
     current.current = next;
     setState(next);
@@ -67,7 +55,10 @@ export default function Workshop() {
       modeRef.current = nextMode;
       setMode(nextMode);
       setError(null);
-      setAnsweringId(null);
+      setCue(null);
+      setWriting(false);
+      setDetails(false);
+      setLoadedAt((value) => value + 1);
       try {
         show(
           loadPact(
@@ -103,23 +94,35 @@ export default function Workshop() {
         show(next);
         setError(null);
         setToday(localDate());
-        if (event.type === 'seal') {
-          setAnsweringId(next.current.id);
-          ritualSound('seal', mutedRef.current);
-        }
+        if (event.type !== 'progress' && next.revision !== before.revision)
+          setCue({ event, revision: next.revision });
+        if (event.type === 'seal') ritualSound('seal', mutedRef.current);
         return true;
       } catch (failure) {
-        if (failure instanceof StalePactError) show(failure.current);
+        if (failure instanceof StalePactError) {
+          show(failure.current);
+          setLoadedAt((value) => value + 1);
+          setCue(null);
+          setWriting(false);
+        }
         setError(
           failure instanceof StalePactError
             ? failure.message
-            : 'That change was not saved. Your last saved pact is shown. Retry, then make the choice again.',
+            : 'That change was not saved. Your last saved pact is shown. Try the choice again, or retry loading.',
         );
         return false;
       }
     },
     [show],
   );
+  useEffect(() => {
+    if (!cue) return;
+    const timer = setTimeout(
+      () => setCue(null),
+      cue.event.type === 'anticipated' ? 850 : 1800,
+    );
+    return () => clearTimeout(timer);
+  }, [cue]);
   useEffect(() => {
     const bootstrap = requestAnimationFrame(() => {
       load(
@@ -176,8 +179,8 @@ export default function Workshop() {
     [send],
   );
   const switchMode = () => {
-    const next = mode === 'daily' ? 'demo' : 'daily';
-    const url = new URL(window.location.href);
+    const next = mode === 'daily' ? 'demo' : 'daily',
+      url = new URL(window.location.href);
     if (next === 'demo') url.searchParams.set('demo', '1');
     else url.searchParams.delete('demo');
     window.history.replaceState({}, '', url);
@@ -196,33 +199,15 @@ export default function Workshop() {
   };
   const ritual = state?.current,
     phase = ritual?.phase ?? 'choosing';
-  const step = phase === 'choosing' ? 1 : phase === 'tracing' ? 2 : 3;
-  const selected = ritual?.selected ? CHALLENGES[ritual.selected] : null;
-  const legacy = ritual?.signed?.catalog === 'legacy-v1';
-  const text = ritual?.signed?.text ?? selected?.text;
-  const criterion = ritual?.signed?.criterion ?? selected?.criterion;
-  const heading =
-    phase === 'choosing'
-      ? 'A pact for today'
-      : phase === 'tracing'
-        ? 'Your hand. His word'
-        : phase === 'away'
-          ? 'Out into the day'
-          : phase === 'reviewing'
-            ? 'What happened?'
-            : 'Pact closed';
-  const pose =
-    phase === 'tracing'
-      ? 1
-      : phase === 'choosing'
-        ? 0
-        : phase === 'closed' && ritual?.review.outcome === 'not_today'
-          ? 5
-          : 4;
-  const previous = ritual?.signed?.practice
-    ? (state?.latest[ritual.signed.practice] ?? null)
-    : null;
-  const suggestion = suggestedAction(previous);
+  const action = ritual?.signed
+    ? catalogAction(ritual.signed.catalog, ritual.signed.actionId)
+    : ritual?.selected
+      ? catalogAction(ritual.catalog, ritual.selected)
+      : null;
+  const step = phase === 'choosing' ? 0 : phase === 'tracing' ? 1 : 2;
+  const emotion = guardianEmotion(ritual, writing, cue?.event);
+  const celebrating = cue?.event.type === 'seal' && phase === 'away';
+  const key = `${mode}:${ritual?.id}:${ritual?.catalog}:${loadedAt}`;
   return (
     <main className="workshop" data-mode={mode} data-phase={phase}>
       <header className="masthead">
@@ -250,24 +235,18 @@ export default function Workshop() {
             aria-label={muted ? 'Turn sound on' : 'Mute sound'}
             aria-pressed={muted}
           >
-            {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            {muted ? <VolumeX size={19} /> : <Volume2 size={19} />}
           </button>
         </div>
       </header>
       <section
-        className={`manga-panel phase-${phase} ${motion.active ? 'writing' : 'settled'} ${ritual?.id === answeringId ? 'just-sealed' : ''}`}
-        style={
-          {
-            '--reach-x': `${(motion.point.x - 290) / 60}px`,
-            '--reach-y': `${(motion.point.y - 100) / 35}px`,
-          } as CSSProperties
-        }
+        className={`manga-panel phase-${phase}`}
         aria-label={mode === 'demo' ? 'Demo pact' : 'Your daily pact'}
       >
         <div className="panel-topline">
           <span>
             <i />
-            {mode === 'demo' ? 'DEMO · TEST PRACTICE' : 'DAILY PACT'}
+            {mode === 'demo' ? 'DEMO PACT' : 'DAILY PACT'}
           </span>
           {mode === 'demo' ? (
             <button
@@ -275,277 +254,192 @@ export default function Workshop() {
               onClick={() => load('demo', true)}
               aria-label="Restart demo"
             >
-              <RotateCcw size={14} /> Replay
+              <RotateCcw size={13} /> Replay
             </button>
           ) : (
             <span>{ritual?.signed ? ritual.date : today}</span>
           )}
         </div>
-        <div className="pact-layout">
-          <div className="guardian-scene">
-            <div className="screentone-orbit" />
-            <div className="guardian-stage">
-              <div className={`guardian-art pose-${pose}`} aria-hidden="true" />
-            </div>
-            <p className="guardian-caption">YOUR GUARDIAN</p>
-            {ritual && (phase === 'closed' || phase === 'away') && (
-              <p className="guardian-response">{guardianReaction(ritual)}</p>
-            )}
+        <Guardian
+          emotion={emotion}
+          symbol={guardianSymbol(emotion, ritual, cue?.event)}
+          celebrating={celebrating}
+          apprehensive={
+            cue?.event.type === 'begin' && ritual?.prediction !== 'skip'
+          }
+        />
+        <div className="pact-interaction" aria-label="Pact interaction">
+          <div className="prompt-progress" aria-label={`Step ${step + 1} of 3`}>
+            {['Choose', 'Sign', 'Return'].map((label, i) => (
+              <span key={label} aria-current={step === i ? 'step' : undefined}>
+                {label}
+              </span>
+            ))}
           </div>
-          <div className="pact-interaction">
-            <span className="eyebrow">
-              0{step} / {step === 1 ? 'CHOOSE' : step === 2 ? 'SIGN' : 'RETURN'}
-            </span>
-            <h1>
-              {heading}
-              <span>{phase === 'reviewing' ? '' : '.'}</span>
-            </h1>
-            {ritual && phase === 'choosing' && (
-              <PactChoices
-                ritual={ritual}
-                previous={state?.latest[ritual.practice]}
-                send={send}
-              />
-            )}
-            {ritual && phase !== 'choosing' && (
+          {error && (
+            <div className="save-error" role="alert">
+              <span>{error}</span>
+              <button
+                className="text-button"
+                onClick={() => load(modeRef.current)}
+              >
+                Retry loading
+              </button>
+            </div>
+          )}
+          {!ritual && (
+            <PromptTitle>
+              {error ? 'Your pact is kept safe.' : 'Your guardian is here.'}
+            </PromptTitle>
+          )}
+          {ritual && phase === 'choosing' && (
+            <PactChoices key={key} ritual={ritual} send={send} />
+          )}
+          {ritual && phase === 'reviewing' && (
+            <ReviewChoices
+              key={`${key}:${ritual.review.outcome ?? 'unanswered'}`}
+              ritual={ritual}
+              send={send}
+            />
+          )}
+          {ritual &&
+            phase !== 'choosing' &&
+            phase !== 'reviewing' &&
+            (details && action ? (
+              <ActionDetails action={action} onBack={() => setDetails(false)} />
+            ) : (
               <>
-                <div className="pact-preview signed-action">
-                  {ritual.signed && (
-                    <span className="dated-pact">
-                      {legacy ? 'EARLIER PACT' : 'SIGNED PACT'} · {ritual.date}
-                    </span>
-                  )}
-                  <p>{text}</p>
-                  <span>{criterion}</span>
-                </div>
-                {phase === 'tracing' && (
-                  <Signature
-                    key={`${mode}:${ritual.id}`}
-                    ritual={ritual}
-                    send={send}
-                    onMotion={onMotion}
-                  />
-                )}
-                {ritual.signed && !legacy && (
-                  <div className="answer-mark" aria-hidden="true" />
-                )}
-                {phase === 'away' && (
-                  <div className="return-actions">
-                    <p>
-                      {ritual.date < today
-                        ? 'This pact is from an earlier day. Review or close it before choosing today’s action.'
-                        : 'Return whenever you can honestly say what happened.'}
-                    </p>
+                <div className="selected-action">
+                  {phase === 'tracing' && ritual.trace.progress === 0 && (
                     <button
-                      className="primary-button"
-                      onClick={() => send({ type: 'back' })}
+                      className="back-icon"
+                      aria-label="Back to choices"
+                      onClick={() => send({ type: 'edit_choices' })}
                     >
-                      Review my attempt ↵
+                      ←
                     </button>
+                  )}
+                  <span>{action?.label ?? ritual.signed?.text}</span>
+                  {action && (
                     <button
                       className="text-button"
-                      onClick={() => {
-                        if (send({ type: 'back' }))
-                          send({ type: 'outcome', outcome: 'not_today' });
-                      }}
+                      onClick={() => setDetails(true)}
                     >
-                      Not today
+                      Details
                     </button>
-                  </div>
+                  )}
+                </div>
+                {phase === 'tracing' && (
+                  <>
+                    <PromptTitle>Your hand. His word.</PromptTitle>
+                    <Signature
+                      key={key}
+                      ritual={ritual}
+                      send={send}
+                      onMotion={onMotion}
+                    />
+                  </>
                 )}
-                {phase === 'reviewing' && (
-                  <div className="review-choices">
-                    <fieldset>
-                      <legend>
-                        Your account of the action{' '}
-                        <span>
-                          Done: the chosen action. Tried: a partial attempt.
-                        </span>
-                      </legend>
-                      <div className="chip-row">
-                        {(['done', 'tried', 'not_today'] as Outcome[]).map(
-                          (outcome) => (
-                            <button
-                              key={outcome}
-                              aria-pressed={ritual.review.outcome === outcome}
-                              onClick={() => send({ type: 'outcome', outcome })}
-                            >
-                              {outcome === 'done'
-                                ? 'Done'
-                                : outcome === 'tried'
-                                  ? 'Tried'
-                                  : 'Not today'}
-                            </button>
-                          ),
+                {phase === 'away' && (
+                  <>
+                    <div className="sealed-heading">
+                      <PromptTitle>Sealed. Go be you.</PromptTitle>
+                      {ritual.signed?.catalog !== 'legacy-v1' &&
+                        !TRANSPARENT_ARTWORK_READY && (
+                          <span
+                            className={`answer-mark legacy-answer-mark ${celebrating ? 'fresh-mark' : ''}`}
+                            aria-label="Your guardian’s answering mark"
+                          />
                         )}
-                      </div>
-                    </fieldset>
-                    {!legacy &&
-                      ritual.review.outcome &&
-                      (ritual.review.outcome === 'not_today' ? (
-                        <fieldset>
-                          <legend>
-                            What got in the way? <span>Optional</span>
-                          </legend>
-                          <div className="chip-row">
-                            {(Object.keys(REASONS) as Reason[]).map(
-                              (reason) => (
-                                <button
-                                  key={reason}
-                                  aria-pressed={ritual.review.reason === reason}
-                                  onClick={() =>
-                                    send({ type: 'reason', reason })
-                                  }
-                                >
-                                  {REASONS[reason]}
-                                </button>
-                              ),
-                            )}
-                          </div>
-                        </fieldset>
-                      ) : (
-                        <>
-                          {ritual.prediction &&
-                            ritual.prediction !== 'skip' && (
-                              <fieldset>
-                                <legend>
-                                  Did this prediction happen?
-                                  <span>{PREDICTIONS[ritual.prediction]}</span>
-                                </legend>
-                                <div className="chip-row">
-                                  {(
-                                    Object.keys(COMPARISONS) as Comparison[]
-                                  ).map((comparison) => (
-                                    <button
-                                      key={comparison}
-                                      aria-pressed={
-                                        ritual.review.comparison === comparison
-                                      }
-                                      onClick={() =>
-                                        send({ type: 'comparison', comparison })
-                                      }
-                                    >
-                                      {COMPARISONS[comparison]}
-                                    </button>
-                                  ))}
-                                </div>
-                              </fieldset>
-                            )}
-                          <fieldset>
-                            <legend>How did the attempt feel?</legend>
-                            <div className="chip-row">
-                              {(Object.keys(EFFORTS) as Effort[]).map(
-                                (effort) => (
-                                  <button
-                                    key={effort}
-                                    aria-pressed={
-                                      ritual.review.effort === effort
-                                    }
-                                    onClick={() =>
-                                      send({ type: 'effort', effort })
-                                    }
-                                  >
-                                    {EFFORTS[effort]}
-                                  </button>
-                                ),
-                              )}
-                            </div>
-                          </fieldset>
-                        </>
-                      ))}
-                    <button
-                      className="primary-button"
-                      disabled={!reviewReady(ritual)}
-                      onClick={() => send({ type: 'finish_review' })}
-                    >
-                      Close this pact
-                    </button>
-                  </div>
+                      {ritual.signed?.catalog !== 'legacy-v1' &&
+                        TRANSPARENT_ARTWORK_READY && (
+                          <Image
+                            unoptimized
+                            className={`answer-mark ${celebrating ? 'fresh-mark' : ''}`}
+                            src="/guardian/answer-mark.png"
+                            alt="Your guardian’s answering mark"
+                            width="64"
+                            height="64"
+                          />
+                        )}
+                    </div>
+                    <p className="guardian-response">
+                      {guardianReaction(ritual)}
+                    </p>
+                    <div className="return-actions">
+                      <button
+                        className="primary-button"
+                        onClick={() => send({ type: 'back' })}
+                      >
+                        Review my attempt ↵
+                      </button>
+                      <button
+                        className="text-button"
+                        onClick={() => {
+                          if (send({ type: 'back' }))
+                            send({ type: 'outcome', outcome: 'not_today' });
+                        }}
+                      >
+                        Not today
+                      </button>
+                    </div>
+                    <p className="small-note">
+                      Signed {ritual.date}.
+                      {ritual.date < today
+                        ? ' Close this pact before choosing today’s.'
+                        : ' Return whenever you’re ready.'}
+                    </p>
+                  </>
                 )}
                 {phase === 'closed' && (
-                  <div className="closed-pact">
-                    <p>
-                      Your account:{' '}
-                      <strong>
-                        {ritual.review.outcome === 'done'
-                          ? 'Done'
-                          : ritual.review.outcome === 'tried'
-                            ? 'Tried'
-                            : 'Not today'}
-                      </strong>
-                      .
+                  <>
+                    <PromptTitle>Pact closed.</PromptTitle>
+                    <p className="closed-outcome">
+                      {ritual.review.outcome && OUTCOMES[ritual.review.outcome]}{' '}
+                      <span>· {ritual.date}</span>
                     </p>
-                    {suggestion && (
-                      <div className="next-suggestion">
-                        <span>{suggestionCopy(previous)}</span>
-                        <strong>{CHALLENGES[suggestion].label}</strong>
-                        <span>The choice stays yours.</span>
-                      </div>
-                    )}
+                    <p className="guardian-response">
+                      {guardianReaction(ritual)}
+                    </p>
                     {mode === 'demo' ? (
                       <button
                         className="primary-button"
                         onClick={() => load('demo', true)}
                       >
-                        Replay demo
+                        Replay demo ↗
                       </button>
                     ) : ritual.date < today ? (
                       <button
                         className="primary-button"
                         onClick={() => send({ type: 'new_day' })}
                       >
-                        Choose today’s pact
+                        Choose today’s pact →
                       </button>
                     ) : (
-                      <p>A fresh choice tomorrow.</p>
+                      <p className="small-note">A fresh choice tomorrow.</p>
                     )}
-                  </div>
+                  </>
                 )}
               </>
-            )}
-            {error && (
-              <div className="save-error" role="alert">
-                <span>{error}</span>
-                <button onClick={() => load(modeRef.current)}>Retry</button>
-              </div>
-            )}
-          </div>
-        </div>
-        <footer className="panel-footer">
-          <div className="ritual-steps">
-            {['Choose', 'Sign', 'Return'].map((name, i) => (
-              <span
-                key={name}
-                className={
-                  step === i + 1 ? 'current' : step > i + 1 ? 'finished' : ''
-                }
-              >
-                <b>0{i + 1}</b>
-                {name}
-              </span>
             ))}
-          </div>
-          <span className="page-number">0{step} / 03</span>
-        </footer>
+        </div>
       </section>
       <footer className="workshop-footer">
         <span>
           {mode === 'demo'
-            ? 'A rehearsal. Your daily pact stays untouched.'
+            ? 'Rehearse here. Your daily pact stays yours.'
             : 'Saved in this browser.'}
         </span>
-        <span className="edition-label">CONFIDENCE WORKSHOP · VOL. 01</span>
+        <span className="edition-label">ONE PACT. YOUR PACE.</span>
       </footer>
       <output className="sr-only" aria-live="polite">
-        {phase === 'choosing'
-          ? 'Choose your pact.'
-          : phase === 'tracing'
-            ? 'Your choice is frozen. Write AGREE, then seal.'
-            : phase === 'away'
-              ? 'Your pact is saved. Return to review whenever you are ready.'
-              : phase === 'reviewing'
-                ? 'Report your experience. Every answer is yours to choose.'
-                : 'Your review is saved.'}
+        {phase === 'tracing'
+          ? 'Write AGREE, then explicitly seal your pact.'
+          : phase === 'away'
+            ? 'Your pact is sealed and saved.'
+            : phase === 'closed'
+              ? 'Your review is saved. Pact closed.'
+              : ''}
       </output>
     </main>
   );

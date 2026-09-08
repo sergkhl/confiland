@@ -22,7 +22,7 @@ const apply = (s: ReturnType<typeof newState>, e: PactEvent) =>
 function traceDraft() {
   let s = newState('2026-09-07', 'fixture');
   for (const e of [
-    { type: 'choose', action: 'greeting' },
+    { type: 'choose', action: 'conversation' },
     { type: 'anticipated', effort: 'manageable' },
     { type: 'prediction', prediction: 'skip' },
     { type: 'begin' },

@@ -2,4 +2,4 @@
 
 # Owner blockers
 
-_None._
+- **TRANSPARENT-ARTWORK** — For [the active plan](2026-09-07-real-world-pacts.md), answer the pending request to use local Python background removal after three built-in outputs failed true alpha. The image tool requires explicit authorization for this editing fallback. Acceptance testing is already authorized; this question applies only to image processing.

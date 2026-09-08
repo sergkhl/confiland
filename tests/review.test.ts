@@ -1,12 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  CHALLENGES,
-  CATALOG_VERSION,
-  actionAt,
-  type Practice,
-  type Step,
-} from '../lib/challenges.ts';
+import { type Practice } from '../lib/challenges.ts';
 import {
   newState,
   transitionPact,
@@ -16,10 +10,8 @@ import {
   emptyReview,
   type PactState,
   type PactEvent,
-  type ClosedPact,
-  type Review,
 } from '../lib/ritual.ts';
-import { suggestedAction, guardianReaction } from '../lib/review.ts';
+import { guardianReaction } from '../lib/review.ts';
 import { ritualTools } from '../lib/webmcp.ts';
 const day = '2026-09-07';
 const apply = (s: PactState, e: PactEvent, date = day) =>
@@ -27,7 +19,10 @@ const apply = (s: PactState, e: PactEvent, date = day) =>
 function signed(practice: Practice = 'voice') {
   let s = newState(day, 'fixture');
   for (const e of [
-    { type: 'choose', action: actionAt(practice, 2) },
+    {
+      type: 'choose',
+      action: practice === 'voice' ? 'request' : 'conversation',
+    },
     { type: 'anticipated', effort: 'stretch' },
     { type: 'prediction', prediction: 'decline' },
     { type: 'begin' },
@@ -38,57 +33,6 @@ function signed(practice: Practice = 'voice') {
     s = apply(s, e);
   return s;
 }
-function previous(
-  practice: Practice,
-  step: Step,
-  review: Partial<Review>,
-): ClosedPact {
-  const id = actionAt(practice, step),
-    action = CHALLENGES[id];
-  return {
-    id: 'prior',
-    date: day,
-    action: {
-      catalog: CATALOG_VERSION,
-      actionId: id,
-      text: action.text,
-      criterion: action.criterion,
-      practice,
-      step,
-    },
-    prediction: 'skip',
-    review: { ...emptyReview(), ...review, complete: true },
-  };
-}
-void test('every suggestion rule clamps within each practice and never selects for the player', () => {
-  const cases: [Partial<Review>, number | null][] = [
-    [{ outcome: 'done', effort: 'manageable' }, 1],
-    [{ outcome: 'done', effort: 'stretch' }, 0],
-    [{ outcome: 'done', effort: 'too_much' }, -1],
-    [{ outcome: 'tried', effort: 'manageable' }, 0],
-    [{ outcome: 'tried', effort: 'stretch' }, 0],
-    [{ outcome: 'tried', effort: 'too_much' }, -1],
-    [{ outcome: 'not_today', reason: 'no_opportunity' }, 0],
-    [{ outcome: 'not_today', reason: 'too_much' }, -1],
-    [{ outcome: 'not_today', reason: 'changed_plans' }, null],
-    [{ outcome: 'not_today', reason: 'skip' }, null],
-  ];
-  for (const practice of ['contact', 'voice'] as const)
-    for (const step of [1, 2, 3] as const)
-      for (const [review, delta] of cases) {
-        const suggestion = suggestedAction(previous(practice, step, review));
-        assert.equal(
-          suggestion,
-          delta === null ? null : actionAt(practice, step + delta),
-        );
-        const state = apply(newState(day), {
-          type: 'choose',
-          action: actionAt(practice, step === 1 ? 3 : 1),
-        });
-        assert.notEqual(state.current.selected, actionAt(practice, step));
-      }
-  assert.equal(suggestedAction(null), null);
-});
 void test('all outcomes require their explicit conditional answers and close once', () => {
   for (const outcome of ['done', 'tried', 'not_today'] as const) {
     let s = apply(signed(), { type: 'outcome', outcome });
@@ -182,7 +126,16 @@ void test('legacy review closes honestly with no invented difficulty or observat
   assert.deepEqual(parseState(JSON.stringify(s)), s);
   const malformed = {
     ...s,
-    latest: { ...s.latest, voice: previous('voice', 2, { outcome: 'done' }) },
+    latest: {
+      ...s.latest,
+      voice: {
+        id: 'malformed',
+        date: day,
+        action: signed().current.signed,
+        prediction: 'skip',
+        review: { ...emptyReview(), outcome: 'done', complete: true },
+      },
+    },
   };
   assert.throws(() => parseState(JSON.stringify(malformed)));
 });
@@ -196,7 +149,6 @@ void test('a prediction coming true or remaining uncertain does not penalize the
   ] as PactEvent[])
     s = apply(s, e);
   assert.match(guardianReaction(s.current), /Their answer does not decide/);
-  assert.equal(suggestedAction(s.latest.voice), 'opinion');
   assert.match(
     guardianReaction({
       ...s.current,

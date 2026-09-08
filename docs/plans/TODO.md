@@ -2,12 +2,13 @@
 
 # TODO
 
-- **Meaningful daily confidence practice** — In progress. [Real-world pacts](2026-09-07-real-world-pacts.md) pass 34 automated tests and observed mouse/keyboard/button demo journeys. Units 2/4 retain true touch, continuous motion, reduced-motion, and browser recovery/date scenarios requiring additional test capabilities, with no permission gate.
+- **Three meaningful actions and a visible guardian** — In progress. [Active plan](2026-09-07-real-world-pacts.md): compact panels, catalogue compatibility, saved-answer reactions, 40 tests, build, and browser fixtures pass. Finish true-alpha artwork after the pending extraction authorization; final asset, touch, and continuous-motion evidence remains open.
 
 # COMPLETED
 
-- Six authored everyday actions and versioned pact choices preserve older signed actions and reject stale or unsaved changes.
-- Explicit Done/Tried/Not today review branches and bounded per-practice suggestions preserve the player's account and choice.
+- Development hot reload is already configured and verified with live React and CSS edits in an isolated local demo; the development command is documented in README.
+- Three meaningful actions replace categories and difficulty suggestions; archived catalogues preserve original traces, wording, dates, and reviews.
+- Sequential choosing/review and a lower signing panel keep the guardian in view; Details, Back, unsigned pause, and explicit closure preserve player control.
 - Automated pact/storage/geometry/tool checks and durable play, compatibility, and art instructions cover the implemented flow.
 - Browser rehearsals cover both practices and all outcomes; corner rounding, atlas bleed, and brush/text overlap are repaired.
 

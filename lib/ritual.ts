@@ -1,12 +1,16 @@
 import {
   CHALLENGES,
   CATALOG_VERSION,
+  CATALOGS,
+  catalogAction,
   PRACTICES,
   EFFORTS,
   PREDICTIONS,
   COMPARISONS,
   REASONS,
   type ActionId,
+  type SavedActionId,
+  type CatalogVersion,
   type Practice,
   type Step,
   type Effort,
@@ -43,9 +47,11 @@ export type SignedAction = {
 export type Ritual = {
   id: string;
   date: string;
+  catalog: CatalogVersion;
+  catalogUpdated?: boolean;
   phase: 'choosing' | 'tracing' | 'away' | 'reviewing' | 'closed';
   practice: Practice;
-  selected: ActionId | null;
+  selected: SavedActionId | null;
   anticipated: Effort | null;
   prediction: Prediction | 'skip' | null;
   trace: { pathId: typeof PATH_ID; progress: number };
@@ -67,13 +73,13 @@ export type PactState = {
   lastSignedDate: string | null;
 };
 type ChoiceEvent =
-  | { type: 'practice'; practice: Practice }
   | { type: 'choose'; action: ActionId }
   | { type: 'anticipated'; effort: Effort }
   | { type: 'prediction'; prediction: Prediction | 'skip' };
 export type PactEvent =
   | ChoiceEvent
-  | { type: 'begin' }
+  | { type: 'begin'; prediction?: Prediction | 'skip' }
+  | { type: 'edit_choices' }
   | { type: 'progress'; progress: number; pathId: string }
   | { type: 'seal'; deliberate: true }
   | { type: 'back' }
@@ -100,6 +106,7 @@ export function newState(
     current: {
       id,
       date,
+      catalog: CATALOG_VERSION,
       phase: 'choosing',
       practice: 'contact',
       selected: null,
@@ -157,24 +164,17 @@ export function transitionPact(
   let next = { ...r };
   let latest = state.latest;
   let lastSignedDate = state.lastSignedDate;
-  if (['practice', 'choose', 'anticipated', 'prediction'].includes(event.type))
+  if (['choose', 'anticipated', 'prediction'].includes(event.type))
     requireValue(
       r.phase === 'choosing',
       'The action is frozen for this signature.',
     );
   switch (event.type) {
-    case 'practice':
-      requireValue(has(PRACTICES, event.practice), 'Choose a practice.');
-      if (r.practice === event.practice) return state;
-      next = {
-        ...r,
-        practice: event.practice,
-        selected: null,
-        anticipated: null,
-        prediction: null,
-      };
-      break;
     case 'choose':
+      requireValue(
+        r.catalog === CATALOG_VERSION,
+        'Refresh the available actions first.',
+      );
       requireValue(has(CHALLENGES, event.action), 'Choose an authored action.');
       if (r.selected === event.action) return state;
       next = {
@@ -183,6 +183,7 @@ export function transitionPact(
         practice: CHALLENGES[event.action].practice,
         anticipated: null,
         prediction: null,
+        catalogUpdated: false,
       };
       break;
     case 'anticipated':
@@ -200,12 +201,29 @@ export function transitionPact(
       );
       next.prediction = event.prediction;
       break;
-    case 'begin':
+    case 'begin': {
+      const prediction =
+        event.prediction === undefined ? r.prediction : event.prediction;
       requireValue(
-        r.phase === 'choosing' && r.selected && r.anticipated && r.prediction,
+        r.phase === 'choosing' &&
+          r.selected &&
+          r.anticipated &&
+          (prediction === 'skip' || has(PREDICTIONS, prediction)),
         'Choose an action, effort, and prediction or Skip first.',
       );
+      next.prediction = prediction as Prediction | 'skip';
       next.phase = 'tracing';
+      break;
+    }
+    case 'edit_choices':
+      requireValue(
+        r.phase === 'tracing' && r.trace.progress === 0,
+        'The action is frozen once writing starts.',
+      );
+      next =
+        r.catalog === CATALOG_VERSION
+          ? { ...r, phase: 'choosing' }
+          : { ...newState(r.date, r.id).current, catalogUpdated: true };
       break;
     case 'progress':
       requireValue(
@@ -231,13 +249,14 @@ export function transitionPact(
         !lastSignedDate || lastSignedDate < today,
         'A pact is already signed for this date.',
       );
-      const action = CHALLENGES[r.selected];
+      const action = catalogAction(r.catalog, r.selected);
+      requireValue(action, 'The original action catalogue is unavailable.');
       next = {
         ...r,
         date: today,
         phase: 'away',
         signed: {
-          catalog: CATALOG_VERSION,
+          catalog: r.catalog,
           actionId: r.selected,
           text: action.text,
           criterion: action.criterion,
@@ -386,10 +405,10 @@ function validateSigned(s: SignedAction) {
     );
   } else {
     requireValue(
-      s.catalog === CATALOG_VERSION && has(CHALLENGES, s.actionId),
+      catalogAction(s.catalog, s.actionId),
       'Unknown action catalog.',
     );
-    const action = CHALLENGES[s.actionId as ActionId];
+    const action = catalogAction(s.catalog, s.actionId)!;
     requireValue(
       s.practice === action.practice &&
         s.step === action.step &&
@@ -411,6 +430,13 @@ export function parseState(raw: string): PactState {
     'Saved pact could not be read.',
   );
   const r = s.current;
+  // Earlier v2 saves predate draft catalogue identity. Their choices belong to everyday-1.
+  if (!Object.hasOwn(r, 'catalog')) r.catalog = 'everyday-1';
+  requireValue(
+    has(CATALOGS, r.catalog) &&
+      (r.catalogUpdated === undefined || typeof r.catalogUpdated === 'boolean'),
+    'Unknown saved action catalogue.',
+  );
   requireValue(
     typeof r.id === 'string' &&
       r.id.length > 0 &&
@@ -420,7 +446,7 @@ export function parseState(raw: string): PactState {
   );
   requireValue(
     has(PRACTICES, r.practice) &&
-      (r.selected === null || has(CHALLENGES, r.selected)) &&
+      (r.selected === null || catalogAction(r.catalog, r.selected)) &&
       (r.anticipated === null || has(EFFORTS, r.anticipated)) &&
       (r.prediction === null ||
         r.prediction === 'skip' ||
@@ -442,7 +468,7 @@ export function parseState(raw: string): PactState {
   validateReview(r.review);
   if (r.selected)
     requireValue(
-      CHALLENGES[r.selected].practice === r.practice,
+      catalogAction(r.catalog, r.selected)?.practice === r.practice,
       'Practice and action do not match.',
     );
   if (r.phase === 'choosing' || r.phase === 'tracing') {
@@ -471,6 +497,7 @@ export function parseState(raw: string): PactState {
     if (r.signed.catalog !== 'legacy-v1')
       requireValue(
         r.trace.progress === 1 &&
+          r.catalog === r.signed.catalog &&
           r.selected === r.signed.actionId &&
           r.anticipated &&
           r.prediction,

@@ -10,8 +10,9 @@ export const EFFORTS = {
   too_much: 'Too much',
 } as const;
 export type Effort = keyof typeof EFFORTS;
-export const CATALOG_VERSION = 'everyday-1';
-export const CHALLENGES = {
+export const CATALOG_VERSION = 'everyday-2';
+/** Immutable definitions for pacts already chosen or signed with the first catalogue. */
+export const EARLIER_CHALLENGES = {
   greeting: {
     practice: 'contact',
     step: 1,
@@ -64,7 +65,62 @@ export const CHALLENGES = {
     example: '“I see it differently because…”',
   },
 } as const;
+export const CHALLENGES = {
+  conversation: {
+    practice: 'contact',
+    step: 3,
+    label: 'Start a real conversation',
+    cue: 'Share an update. Ask an open question.',
+    text: "Today, I'll approach an acquaintance, share a short update, and ask an open question.",
+    criterion: 'Offer both parts. A reply is not required.',
+    example:
+      '“I finally tried that trail you mentioned. What have you been enjoying lately?”',
+  },
+  request: {
+    practice: 'voice',
+    step: 2,
+    label: 'Make a clear request',
+    cue: 'Ask for a change. Explain why.',
+    text: "Today, I'll ask for a specific change that would help me and briefly explain why.",
+    criterion: 'State your request and one reason. Agreement is not required.',
+    example:
+      '“Could we move our catch-up to Thursday? I want enough time to give it my full attention.”',
+  },
+  opinion: {
+    practice: 'voice',
+    step: 3,
+    label: 'Share a different view',
+    cue: 'Say what you think. Give one reason.',
+    text: "Today, I'll respectfully share a different opinion in an everyday conversation, with one reason.",
+    criterion:
+      'State your view and reason respectfully. Agreement is not required.',
+    example:
+      '“I’d choose the other option, because it gives us more time together.”',
+  },
+} as const;
 export type ActionId = keyof typeof CHALLENGES;
+export type SavedActionId = ActionId | keyof typeof EARLIER_CHALLENGES;
+export type CatalogVersion = 'everyday-1' | typeof CATALOG_VERSION;
+export const ACTION_IDS = Object.keys(CHALLENGES) as ActionId[];
+export const CATALOGS = {
+  'everyday-1': EARLIER_CHALLENGES,
+  [CATALOG_VERSION]: CHALLENGES,
+} as const;
+export type Challenge = {
+  practice: Practice;
+  step: Step;
+  label: string;
+  text: string;
+  criterion: string;
+  example: string;
+};
+export function catalogAction(catalog: string, id: string): Challenge | null {
+  if (!Object.hasOwn(CATALOGS, catalog)) return null;
+  const actions = CATALOGS[catalog as CatalogVersion];
+  return Object.hasOwn(actions, id)
+    ? (actions as Record<string, Challenge>)[id]
+    : null;
+}
 export const PREDICTIONS = {
   no_answer: 'I may not get an answer',
   stop: 'I may stop mid-sentence',
@@ -85,11 +141,3 @@ export const REASONS = {
   skip: 'Skip',
 } as const;
 export type Reason = keyof typeof REASONS;
-export function actionsFor(practice: Practice): ActionId[] {
-  return (Object.keys(CHALLENGES) as ActionId[]).filter(
-    (id) => CHALLENGES[id].practice === practice,
-  );
-}
-export function actionAt(practice: Practice, step: number): ActionId {
-  return actionsFor(practice)[Math.max(1, Math.min(3, step)) - 1];
-}
