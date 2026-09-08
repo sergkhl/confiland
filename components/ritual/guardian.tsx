@@ -2,6 +2,13 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { EMOTIONS, POSES, type Emotion } from '@/lib/guardian';
 import { PoseHold } from '@/lib/guardian-motion';
+import {
+  GUARDIAN_ASSETS,
+  observeArtwork,
+  type ArtworkResult,
+  type ArtworkStatus,
+  type GuardianAsset,
+} from '@/lib/guardian-artwork';
 
 type Props = {
   emotion: Emotion;
@@ -12,6 +19,7 @@ type Props = {
   tapBeat: number;
   holdPose: boolean;
   balloon: string | null;
+  onArtworkStatusChange: (status: ArtworkStatus) => void;
 };
 export function Guardian({
   emotion,
@@ -22,7 +30,9 @@ export function Guardian({
   tapBeat,
   holdPose,
   balloon,
+  onArtworkStatusChange,
 }: Props) {
+  const scene = useRef<HTMLDivElement>(null);
   const held = useRef(new PoseHold(emotion, 0));
   const [pose, setPose] = useState(emotion);
   useEffect(() => {
@@ -47,12 +57,38 @@ export function Guardian({
     return () => clearTimeout(timer);
   }, [emotion, holdPose]);
   const [loaded, setLoaded] = useState<
-    Partial<Record<Emotion | 'answer-mark', boolean>>
+    Partial<Record<GuardianAsset, ArtworkResult>>
   >({});
-  const allReady = POSES.every((pose) => loaded[pose]) && loaded['answer-mark'];
+  useEffect(() => {
+    const cleanups = Array.from(
+      scene.current?.querySelectorAll<HTMLImageElement>(
+        '[data-guardian-asset]',
+      ) ?? [],
+      (image) => {
+        const asset = image.dataset.guardianAsset as GuardianAsset;
+        return observeArtwork(image, (result) =>
+          setLoaded((before) =>
+            before[asset] ? before : { ...before, [asset]: result },
+          ),
+        );
+      },
+    );
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, []);
+  useEffect(() => {
+    onArtworkStatusChange({
+      decoded: GUARDIAN_ASSETS.filter((asset) => loaded[asset] === 'ready')
+        .length,
+      total: GUARDIAN_ASSETS.length,
+      curiousReady: loaded.curious === 'ready',
+      failed: GUARDIAN_ASSETS.some((asset) => loaded[asset] === 'error'),
+    });
+  }, [loaded, onArtworkStatusChange]);
+  const allReady = GUARDIAN_ASSETS.every((asset) => loaded[asset] === 'ready');
   const visible = allReady ? (holdPose ? pose : emotion) : 'curious';
   return (
     <div
+      ref={scene}
       className={`guardian-scene effect-${EMOTIONS[visible].effect} ${celebrating ? 'celebrating' : ''} ${allReady ? 'art-ready' : ''} ${reactionKey ? 'is-reacting' : ''} ${balloon ? 'has-balloon' : ''}`}
       data-emotion={visible}
       data-artwork="transparent"
@@ -85,19 +121,7 @@ export function Guardian({
                 height="1024"
                 loading="eager"
                 fetchPriority={pose === 'curious' ? 'high' : 'auto'}
-                onLoad={(event) => {
-                  const art = event.currentTarget;
-                  void art
-                    .decode()
-                    .then(() =>
-                      setLoaded((before) =>
-                        before[pose] ? before : { ...before, [pose]: true },
-                      ),
-                    )
-                    .catch(() => {
-                      /* Retain the current pose if decoding fails. */
-                    });
-                }}
+                data-guardian-asset={pose}
               />
             ))}
           </div>
@@ -111,16 +135,7 @@ export function Guardian({
           width="1024"
           height="1024"
           loading="eager"
-          onLoad={(event) => {
-            void event.currentTarget
-              .decode()
-              .then(() =>
-                setLoaded((before) => ({ ...before, 'answer-mark': true })),
-              )
-              .catch(() => {
-                /* Keep the loaded face without a partial sequence. */
-              });
-          }}
+          data-guardian-asset="answer-mark"
         />
         <div className="emotion-symbol symbol-a" aria-hidden="true">
           {visible === emotion ? symbol : EMOTIONS[visible].symbol}

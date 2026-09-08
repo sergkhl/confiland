@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Recorded high five, elastic slider, and live guardian feedback](2026-09-07-real-world-pacts.md) — Complete and published at confiland.globesoul.com: recorded strike, rubber friction, balloon pops and immediate confident/determined/reassuring previews. All 74 tests, TypeScript, targeted lint, static/Worker builds and available browser/signal checks pass. GitHub Pages confirms the implementation commit; all 24 public assets and the live demo through explicit seal/reload/closure pass. Listening/device limits are recorded in the plan.
+1. [Startup loading screen](2026-09-07-real-world-pacts.md) — Complete locally; owner-requested publication is in progress. Initial HTML waits for restored state and all thirteen decoded images, with progress, retry and a reduced-motion-aware reveal. All 81 tests, TypeScript, targeted lint, static/Worker builds and local browser acceptance pass. Next: verify the existing public Pages deployment and live demo; evidence limits remain in the plan.
 
 [Workstreams](TODO.md) · [Owner blockers](BLOCKERS.md).
