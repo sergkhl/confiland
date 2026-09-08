@@ -1,41 +1,60 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { Slider } from '@base-ui/react/slider';
 import { EFFORTS, type Effort } from '@/lib/challenges';
+import { StretchSoundGate } from '@/lib/sound';
 import {
   stretchEffort,
   stretchPreview,
   StretchGesture,
+  type StretchFeedback,
 } from '@/lib/stretch-choice';
 
 export function StretchChoice({
   value,
   effort,
   onChoose,
-  onBalloon,
+  onPreviewChange,
 }: {
   value?: number;
   effort: Effort | null;
   onChoose: (value: number) => boolean;
-  onBalloon: (label: string | null) => void;
+  onPreviewChange: (feedback: StretchFeedback | null) => void;
 }) {
   const gesture = useRef(new StretchGesture(value, effort));
   const [preview, setPreview] = useState(() => stretchPreview(value, effort));
+  const soundGate = useRef(new StretchSoundGate(stretchPreview(value, effort)));
   const [touched, setTouched] = useState(false);
-  const label =
-    touched || value !== undefined
-      ? EFFORTS[stretchEffort(preview)]
-      : 'Your call.';
   useEffect(() => {
-    onBalloon(label);
-  }, [label, onBalloon]);
-  useEffect(() => () => onBalloon(null), [onBalloon]);
+    onPreviewChange({
+      source: 'restore',
+      effort: value === undefined ? null : stretchEffort(value),
+    });
+    return () => onPreviewChange(null);
+  }, [value, onPreviewChange]);
   const help = useId();
   const cancel = () => {
-    setPreview(gesture.current.cancel());
+    const position = gesture.current.cancel();
+    setPreview(position);
+    soundGate.current.reset(position);
     setTouched(false);
+    onPreviewChange({
+      source: 'restore',
+      effort: value === undefined ? null : stretchEffort(position),
+    });
   };
   const choose = (position: number) => {
+    onPreviewChange(null);
     if (!onChoose(position)) cancel();
+  };
+  const move = (next: number) => {
+    const position = gesture.current.preview(next);
+    setPreview(position);
+    setTouched(true);
+    onPreviewChange({
+      source: 'input',
+      effort: stretchEffort(position),
+      rub: soundGate.current.move(position, performance.now()),
+    });
   };
   return (
     <div
@@ -54,10 +73,7 @@ export function StretchChoice({
         largeStep={5}
         value={preview}
         thumbAlignment="edge"
-        onValueChange={(next) => {
-          setPreview(gesture.current.preview(next));
-          setTouched(true);
-        }}
+        onValueChange={move}
         onPointerDownCapture={(event) => {
           if (event.button === 0)
             gesture.current.begin(event.pointerId, event.isPrimary);
@@ -81,8 +97,7 @@ export function StretchChoice({
             if (position !== null) {
               event.preventDefault();
               event.stopPropagation();
-              setPreview(position);
-              setTouched(true);
+              move(position);
             }
           }
         }}

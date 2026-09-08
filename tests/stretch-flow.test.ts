@@ -232,3 +232,33 @@ void test('answer holds and seal frames share the exact durations used by CSS', 
   assert.equal(GUARDIAN_CSS_TIMING['--delighted-delay'], '1400ms');
   assert.equal(GUARDIAN_CSS_TIMING['--stamp-ms'], '1620ms');
 });
+
+void test('live effort poses replace older answer cues without changing the saved pact', () => {
+  const state = chosen();
+  const saved = JSON.stringify(state);
+  const older = { type: 'choose', action: 'request' } as const;
+  for (const [effort, pose] of [
+    ['manageable', 'confident'],
+    ['stretch', 'determined'],
+    ['too_much', 'reassuring'],
+    ['stretch', 'determined'],
+    ['manageable', 'confident'],
+  ] as const) {
+    assert.equal(guardianEmotion(state.current, false, older, effort), pose);
+    assert.equal(JSON.stringify(state), saved);
+  }
+  assert.equal(
+    guardianEmotion(state.current, false, older, null),
+    'determined',
+  );
+  const sealing = apply(state, { type: 'anticipated', value: 20 });
+  assert.equal(
+    guardianEmotion(sealing.current, true, null, 'too_much'),
+    'focused',
+  );
+  const tooMuch = apply(state, { type: 'anticipated', value: 90 });
+  assert.equal(
+    guardianEmotion(tooMuch.current, false, { type: 'anticipated', value: 90 }),
+    'reassuring',
+  );
+});

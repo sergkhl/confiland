@@ -1,5 +1,6 @@
 import type { PactEvent, Ritual } from './ritual.ts';
 import { stretchEffort } from './stretch-choice.ts';
+import type { Effort } from './challenges.ts';
 
 export const EMOTIONS = {
   curious: { label: 'Alert and curious', symbol: '?', effect: 'curiosity' },
@@ -46,22 +47,25 @@ export const EMOTIONS = {
 export type Emotion = keyof typeof EMOTIONS;
 export const POSES = Object.keys(EMOTIONS) as Emotion[];
 
+const effortEmotion = (effort: Effort): Emotion =>
+  effort === 'too_much'
+    ? 'reassuring'
+    : effort === 'stretch'
+      ? 'determined'
+      : 'confident';
+
 /** A cue exists only after a committed answer, never after loading a saved pact. */
 export function guardianEmotion(
   ritual: Ritual | undefined,
   charging = false,
   cue: PactEvent | null = null,
+  preview: Effort | null = null,
 ): Emotion {
   if (!ritual) return 'curious';
+  if (ritual.phase === 'choosing' && preview) return effortEmotion(preview);
   if (cue?.type === 'seal' && ritual.phase === 'away') return 'delighted';
-  if (cue?.type === 'anticipated') {
-    const effort = stretchEffort(cue.value);
-    return effort === 'too_much'
-      ? 'surprised'
-      : effort === 'stretch'
-        ? 'determined'
-        : 'confident';
-  }
+  if (cue?.type === 'anticipated')
+    return effortEmotion(stretchEffort(cue.value));
   if (cue?.type === 'begin' && ritual.phase === 'sealing') {
     if (ritual.prediction === 'skip') return 'confident';
     return ritual.prediction === 'stop' ? 'reassuring' : 'focused';
@@ -84,9 +88,7 @@ export function guardianEmotion(
     return 'relaxed';
   }
   if (ritual.phase === 'away') return 'confident';
-  if (ritual.anticipated === 'too_much') return 'reassuring';
-  if (ritual.anticipated === 'stretch') return 'determined';
-  if (ritual.anticipated === 'manageable') return 'confident';
+  if (ritual.anticipated) return effortEmotion(ritual.anticipated);
   if (ritual.selected === 'conversation') return 'welcoming';
   if (ritual.selected === 'request') return 'determined';
   if (ritual.selected === 'opinion') return 'confident';

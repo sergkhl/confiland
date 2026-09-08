@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [A continuous stretch slider, speaking guardian, and stronger momentum challenge](2026-09-07-real-world-pacts.md) — Complete locally. Free stretch preview, one speech balloon, atomic Doable shortcut, twenty-tap momentum and longer comic reactions are implemented. All 55 tests, TypeScript, targeted lint, build and available browser checks pass; physical-touch/continuous-motion limits are recorded in the plan. Public GitHub Pages hosting at [confiland.globesoul.com](https://confiland.globesoul.com/) is deployed and verified, with HTTPS and automatic main-branch builds.
+1. [Recorded high five, elastic slider, and live guardian feedback](2026-09-07-real-world-pacts.md) — Complete locally: recorded strike, rubber friction, balloon pops and immediate confident/determined/reassuring previews. All 74 tests, TypeScript, targeted lint, static/Worker builds and available browser/signal checks pass; listening/device limits are recorded in the plan. Owner-requested GitHub Pages publication and live verification are in progress.
 
 [Workstreams](TODO.md) · [Owner blockers](BLOCKERS.md).

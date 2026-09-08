@@ -26,9 +26,11 @@ export const OUTCOMES = {
 export function ReviewChoices({
   ritual,
   send,
+  onNavigate,
 }: {
   ritual: Ritual;
   send: (event: PactEvent) => boolean;
+  onNavigate: () => void;
 }) {
   const [step, setStep] = useState<ReviewStep>(() => nextReview(ritual));
   const [details, setDetails] = useState(false);
@@ -38,7 +40,15 @@ export function ReviewChoices({
   const legacy = ritual.signed?.catalog === 'legacy-v1';
   const hasPrediction = !!ritual.prediction && ritual.prediction !== 'skip';
   if (details && action)
-    return <ActionDetails action={action} onBack={() => setDetails(false)} />;
+    return (
+      <ActionDetails
+        action={action}
+        onBack={() => {
+          setDetails(false);
+          onNavigate();
+        }}
+      />
+    );
   const back = () =>
     setStep(
       step === 'comparison' || step === 'reason'
@@ -58,7 +68,13 @@ export function ReviewChoices({
       <div className="selected-action">
         <span>{action?.label ?? ritual.signed?.text}</span>
         {action && (
-          <button className="text-button" onClick={() => setDetails(true)}>
+          <button
+            className="text-button"
+            onClick={() => {
+              setDetails(true);
+              onNavigate();
+            }}
+          >
             Details
           </button>
         )}
@@ -182,7 +198,13 @@ export function ReviewChoices({
         </>
       )}
       {step !== 'outcome' && (
-        <button className="back-button" onClick={back}>
+        <button
+          className="back-button"
+          onClick={() => {
+            back();
+            onNavigate();
+          }}
+        >
           ← Back
         </button>
       )}

@@ -10,15 +10,18 @@ import { nextChoice, type ChoiceStep } from '@/lib/pact-flow';
 import type { PactEvent, Ritual } from '@/lib/ritual';
 import { ActionDetails, PromptTitle } from './action-details';
 import { StretchChoice } from './stretch-choice';
+import type { StretchFeedback } from '@/lib/stretch-choice';
 
 export function PactChoices({
   ritual,
   send,
-  onBalloon,
+  onPreviewChange,
+  onNavigate,
 }: {
   ritual: Ritual;
   send: (event: PactEvent) => boolean;
-  onBalloon: (label: string | null) => void;
+  onPreviewChange: (feedback: StretchFeedback | null) => void;
+  onNavigate: () => void;
 }) {
   const [step, setStep] = useState<ChoiceStep>(() => nextChoice(ritual));
   const [details, setDetails] = useState(false);
@@ -27,13 +30,27 @@ export function PactChoices({
     ? catalogAction(ritual.catalog, ritual.selected)
     : null;
   if (details && action)
-    return <ActionDetails action={action} onBack={() => setDetails(false)} />;
+    return (
+      <ActionDetails
+        action={action}
+        onBack={() => {
+          setDetails(false);
+          onNavigate();
+        }}
+      />
+    );
   if (paused)
     return (
       <section className="unsigned-pause">
         <PromptTitle>Nothing signed. Take your time.</PromptTitle>
         <p>Your choice is saved for when it fits.</p>
-        <button className="primary-button" onClick={() => setPaused(false)}>
+        <button
+          className="primary-button"
+          onClick={() => {
+            setPaused(false);
+            onNavigate();
+          }}
+        >
           Continue choosing →
         </button>
         <button
@@ -41,6 +58,7 @@ export function PactChoices({
           onClick={() => {
             setPaused(false);
             setStep('action');
+            onNavigate();
           }}
         >
           Choose another action
@@ -56,12 +74,21 @@ export function PactChoices({
             aria-label={
               step === 'prediction' ? 'Back to effort' : 'Back to actions'
             }
-            onClick={() => setStep(step === 'prediction' ? 'effort' : 'action')}
+            onClick={() => {
+              setStep(step === 'prediction' ? 'effort' : 'action');
+              onNavigate();
+            }}
           >
             ←
           </button>
           <span>{action.label}</span>
-          <button className="text-button" onClick={() => setDetails(true)}>
+          <button
+            className="text-button"
+            onClick={() => {
+              setDetails(true);
+              onNavigate();
+            }}
+          >
             Details
           </button>
         </div>
@@ -112,7 +139,7 @@ export function PactChoices({
         <StretchChoice
           value={ritual.anticipatedValue}
           effort={ritual.anticipated}
-          onBalloon={onBalloon}
+          onPreviewChange={onPreviewChange}
           onChoose={(value) => {
             const saved = send({ type: 'anticipated', value });
             if (saved) setStep('prediction');
@@ -144,10 +171,22 @@ export function PactChoices({
           {ritual.anticipated === 'too_much' && (
             <div className="gentle-exit">
               <span className="sr-only">You can leave this unsigned.</span>
-              <button className="text-button" onClick={() => setStep('action')}>
+              <button
+                className="text-button"
+                onClick={() => {
+                  setStep('action');
+                  onNavigate();
+                }}
+              >
                 Change action
               </button>
-              <button className="text-button" onClick={() => setPaused(true)}>
+              <button
+                className="text-button"
+                onClick={() => {
+                  setPaused(true);
+                  onNavigate();
+                }}
+              >
                 Pause for now
               </button>
             </div>

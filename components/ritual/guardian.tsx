@@ -50,7 +50,7 @@ export function Guardian({
     Partial<Record<Emotion | 'answer-mark', boolean>>
   >({});
   const allReady = POSES.every((pose) => loaded[pose]) && loaded['answer-mark'];
-  const visible = allReady ? pose : 'curious';
+  const visible = allReady ? (holdPose ? pose : emotion) : 'curious';
   return (
     <div
       className={`guardian-scene effect-${EMOTIONS[visible].effect} ${celebrating ? 'celebrating' : ''} ${allReady ? 'art-ready' : ''} ${reactionKey ? 'is-reacting' : ''} ${balloon ? 'has-balloon' : ''}`}

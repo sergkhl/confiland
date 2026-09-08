@@ -3,6 +3,7 @@ import Image from 'next/image';
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -12,7 +13,7 @@ import { PactChoices } from '@/components/ritual/pact-choices';
 import { ReviewChoices, OUTCOMES } from '@/components/ritual/review-choices';
 import { ActionDetails, PromptTitle } from '@/components/ritual/action-details';
 import { Guardian } from '@/components/ritual/guardian';
-import { catalogAction } from '@/lib/challenges';
+import { catalogAction, EFFORTS } from '@/lib/challenges';
 import {
   DAILY_KEY,
   localDate,
@@ -25,7 +26,13 @@ import {
   StalePactError,
   type Mode,
 } from '@/lib/pact-storage';
-import { prepareAudio, ritualSound } from '@/lib/sound';
+import {
+  committedSound,
+  stretchFeedbackSound,
+  RitualAudio,
+  type SoundCue,
+} from '@/lib/sound';
+import type { StretchFeedback } from '@/lib/stretch-choice';
 import { MomentumSeal } from '@/components/ritual/momentum-seal';
 import { guardianReaction } from '@/lib/review';
 import { guardianEmotion, guardianSymbol } from '@/lib/guardian';
@@ -51,26 +58,59 @@ export default function Workshop() {
   );
   const [charging, setCharging] = useState(false);
   const [tapBeat, setTapBeat] = useState(0);
-  const [balloon, setBalloon] = useState<string | null>(null);
+  const [stretch, setStretch] = useState<StretchFeedback | null>(null);
+  const stretchRef = useRef<StretchFeedback | null>(null);
   const [details, setDetails] = useState(false);
   const [loadedAt, setLoadedAt] = useState(0);
   const current = useRef<PactState | null>(null),
     modeRef = useRef<Mode>('daily'),
     mutedRef = useRef(false);
+  const audio = useRef<RitualAudio | null>(null);
+  const sealRequest = useRef<number | null>(null);
+  const getAudio = useCallback(() => {
+    audio.current ??= new RitualAudio();
+    audio.current.setMuted(mutedRef.current);
+    return audio.current;
+  }, []);
+  const sound = useCallback(
+    (effect: SoundCue) => {
+      if (!mutedRef.current && document.visibilityState === 'visible')
+        getAudio().play(effect);
+    },
+    [getAudio],
+  );
+  const navigate = useCallback(() => {
+    audio.current?.stop();
+    setCue((current) => (current?.event.type === 'seal' ? null : current));
+    sound({ kind: 'navigate' });
+  }, [sound]);
+  const previewStretch = useCallback(
+    (next: StretchFeedback | null) => {
+      const effect = stretchFeedbackSound(stretchRef.current, next);
+      stretchRef.current = next;
+      setStretch(next);
+      if (!next || next.source === 'restore') audio.current?.stopPreview();
+      else if (effect) sound(effect);
+    },
+    [sound],
+  );
   const onMotion = useCallback((active: boolean) => setCharging(active), []);
   const show = useCallback((next: PactState | null) => {
     current.current = next;
     setState(next);
   }, []);
   const load = useCallback(
-    (nextMode: Mode, reset = false) => {
+    (nextMode: Mode, reset = false, audible = false) => {
+      audio.current?.stop();
+      sealRequest.current = null;
       modeRef.current = nextMode;
       setMode(nextMode);
       setError(null);
       setCue(null);
       setCharging(false);
       setTapBeat(0);
-      setBalloon(null);
+      stretchRef.current = null;
+      setStretch(null);
       setDetails(false);
       setLoadedAt((value) => value + 1);
       try {
@@ -83,6 +123,7 @@ export default function Workshop() {
           ),
         );
         setToday(localDate());
+        if (audible) sound({ kind: 'navigate' });
       } catch {
         show(null);
         setError(
@@ -90,10 +131,10 @@ export default function Workshop() {
         );
       }
     },
-    [show],
+    [show, sound],
   );
   const send = useCallback(
-    (event: PactEvent, expectedId?: string): boolean => {
+    (event: PactEvent, expectedId?: string, silent = false): boolean => {
       const before = current.current;
       if (!before || (expectedId && before.current.id !== expectedId))
         return false;
@@ -122,16 +163,21 @@ export default function Workshop() {
           setCue({ event, revision: next.revision });
         if (event.type === 'tap' && next.revision !== before.revision)
           setTapBeat((beat) => beat + 1);
-        if (event.type === 'seal') ritualSound('seal', mutedRef.current);
+        const effect = committedSound(before, next, event, silent);
+        if (effect?.kind === 'seal') sealRequest.current = next.revision;
+        else if (effect) sound(effect);
         return true;
       } catch (failure) {
+        audio.current?.stop();
+        sealRequest.current = null;
         if (failure instanceof StalePactError) {
           show(failure.current);
           setLoadedAt((value) => value + 1);
           setCue(null);
           setCharging(false);
           setTapBeat(0);
-          setBalloon(null);
+          stretchRef.current = null;
+          setStretch(null);
         }
         setError(
           failure instanceof StalePactError
@@ -141,8 +187,22 @@ export default function Workshop() {
         return false;
       }
     },
-    [show],
+    [show, sound],
   );
+  // Start together with the committed visual sequence, never on a state reload.
+  useLayoutEffect(() => {
+    audio.current?.stopSeal();
+    if (cue?.event.type === 'seal' && sealRequest.current === cue.revision) {
+      sealRequest.current = null;
+      sound({
+        kind: 'seal',
+        reducedMotion:
+          window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ??
+          false,
+      });
+    }
+    return () => audio.current?.stopSeal();
+  }, [cue, sound]);
   useEffect(() => {
     if (!cue) return;
     const timer = setTimeout(
@@ -163,6 +223,7 @@ export default function Workshop() {
           localStorage.getItem('confidence-workshop.muted') === 'true';
         setMuted(quiet);
         mutedRef.current = quiet;
+        audio.current?.setMuted(quiet);
       } catch {
         /* Preference storage is optional. */
       }
@@ -170,8 +231,16 @@ export default function Workshop() {
     const refresh = () => load(modeRef.current);
     const visible = () => {
       if (document.visibilityState === 'visible') refresh();
+      else audio.current?.stop();
     };
+    const stopAudio = () => audio.current?.stop();
     const changed = (event: StorageEvent) => {
+      if (event.key === 'confidence-workshop.muted' || event.key === null) {
+        const quiet = event.key !== null && event.newValue === 'true';
+        setMuted(quiet);
+        mutedRef.current = quiet;
+        audio.current?.setMuted(quiet);
+      }
       if (
         modeRef.current === 'daily' &&
         (event.key === DAILY_KEY || event.key === null)
@@ -186,6 +255,8 @@ export default function Workshop() {
       );
     window.addEventListener('storage', changed);
     window.addEventListener('popstate', history);
+    window.addEventListener('blur', stopAudio);
+    window.addEventListener('pagehide', stopAudio);
     document.addEventListener('visibilitychange', visible);
     const timer = setInterval(() => setToday(localDate()), 30000);
     return () => {
@@ -193,7 +264,11 @@ export default function Workshop() {
       clearInterval(timer);
       window.removeEventListener('storage', changed);
       window.removeEventListener('popstate', history);
+      window.removeEventListener('blur', stopAudio);
+      window.removeEventListener('pagehide', stopAudio);
       document.removeEventListener('visibilitychange', visible);
+      audio.current?.dispose();
+      audio.current = null;
     };
   }, [load]);
   useEffect(
@@ -202,7 +277,7 @@ export default function Workshop() {
         () => ({ mode: modeRef.current, state: current.current }),
         (id, outcome) =>
           current.current?.current.id === id &&
-          send({ type: 'outcome', outcome }),
+          send({ type: 'outcome', outcome }, id, true),
       ),
     [send],
   );
@@ -212,13 +287,14 @@ export default function Workshop() {
     if (next === 'demo') url.searchParams.set('demo', '1');
     else url.searchParams.delete('demo');
     window.history.replaceState({}, '', url);
-    load(next);
+    load(next, false, true);
   };
   const toggleSound = () => {
     const next = !muted;
     setMuted(next);
     mutedRef.current = next;
-    if (!next) prepareAudio();
+    audio.current?.setMuted(next);
+    if (!next) sound({ kind: 'choice' });
     try {
       localStorage.setItem('confidence-workshop.muted', String(next));
     } catch {
@@ -233,7 +309,17 @@ export default function Workshop() {
       ? catalogAction(ritual.catalog, ritual.selected)
       : null;
   const step = phase === 'choosing' ? 0 : phase === 'sealing' ? 1 : 2;
-  const emotion = guardianEmotion(ritual, charging, cue?.event);
+  const emotion = guardianEmotion(
+    ritual,
+    charging,
+    cue?.event,
+    stretch?.effort,
+  );
+  const balloon = stretch
+    ? stretch.effort
+      ? EFFORTS[stretch.effort]
+      : 'Your call.'
+    : null;
   const celebrating = cue?.event.type === 'seal' && phase === 'away';
   const key = `${mode}:${ritual?.id}:${ritual?.catalog}:${loadedAt}`;
   return (
@@ -242,6 +328,13 @@ export default function Workshop() {
       data-mode={mode}
       data-phase={phase}
       style={GUARDIAN_CSS_TIMING as CSSProperties}
+      onPointerDownCapture={(event) => {
+        if (event.button === 0 && event.isPrimary && !mutedRef.current)
+          void getAudio().unlock();
+      }}
+      onKeyDownCapture={(event) => {
+        if (!event.repeat && !mutedRef.current) void getAudio().unlock();
+      }}
     >
       <header className="masthead">
         {/* oxlint-disable-next-line nextjs/no-html-link-for-pages -- Static hosts use document navigation. */}
@@ -281,7 +374,7 @@ export default function Workshop() {
           {mode === 'demo' ? (
             <button
               className="text-button"
-              onClick={() => load('demo', true)}
+              onClick={() => load('demo', true, true)}
               aria-label="Restart demo"
             >
               <RotateCcw size={13} /> Replay
@@ -320,7 +413,7 @@ export default function Workshop() {
               <button
                 ref={retryButton}
                 className="text-button"
-                onClick={() => load(modeRef.current)}
+                onClick={() => load(modeRef.current, false, true)}
               >
                 Retry loading
               </button>
@@ -336,7 +429,8 @@ export default function Workshop() {
               key={key}
               ritual={ritual}
               send={send}
-              onBalloon={setBalloon}
+              onPreviewChange={previewStretch}
+              onNavigate={navigate}
             />
           )}
           {ritual && phase === 'reviewing' && (
@@ -344,13 +438,20 @@ export default function Workshop() {
               key={`${key}:${ritual.review.outcome ?? 'unanswered'}`}
               ritual={ritual}
               send={send}
+              onNavigate={navigate}
             />
           )}
           {ritual &&
             phase !== 'choosing' &&
             phase !== 'reviewing' &&
             (details && action ? (
-              <ActionDetails action={action} onBack={() => setDetails(false)} />
+              <ActionDetails
+                action={action}
+                onBack={() => {
+                  setDetails(false);
+                  navigate();
+                }}
+              />
             ) : (
               <>
                 <div className="selected-action">
@@ -374,7 +475,10 @@ export default function Workshop() {
                   {action && (
                     <button
                       className="text-button"
-                      onClick={() => setDetails(true)}
+                      onClick={() => {
+                        setDetails(true);
+                        navigate();
+                      }}
                     >
                       Details
                     </button>
@@ -446,7 +550,7 @@ export default function Workshop() {
                     {mode === 'demo' ? (
                       <button
                         className="primary-button"
-                        onClick={() => load('demo', true)}
+                        onClick={() => load('demo', true, true)}
                       >
                         Replay demo ↗
                       </button>

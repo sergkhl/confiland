@@ -1,4 +1,10 @@
 import type { Effort } from './challenges.ts';
+
+/** Presentation only: restoring a slider never announces a new answer. */
+export type StretchFeedback =
+  | { source: 'input'; effort: Effort; rub: boolean }
+  | { source: 'restore'; effort: Effort | null };
+
 export function validStretch(value: number): boolean {
   return Number.isFinite(value) && value >= 0 && value <= 100;
 }

@@ -269,7 +269,7 @@ void test('emotion follows saved answers, signing activity, and honest outcomes 
       type: 'anticipated',
       value: 83,
     }),
-    'surprised',
+    'reassuring',
   );
   assert.equal(guardianEmotion(tooMuch), 'reassuring');
   const trace = apply(chosen(), { type: 'begin', prediction: 'stop' });
