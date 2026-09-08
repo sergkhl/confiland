@@ -2,7 +2,7 @@
 
 # TODO
 
-_None for the approved local implementation. Deployment requires a separate request._
+- [Publish to GitHub Pages](2026-09-07-real-world-pacts.md#github-pages-deployment--2026-09-08): make the repository public, deploy the static build, configure confiland.globesoul.com with HTTPS, and verify the live demo. Explicitly authorized on 2026-09-08.
 
 # COMPLETED
 

@@ -7,7 +7,6 @@ import {
   useState,
   type CSSProperties,
 } from 'react';
-import Link from 'next/link';
 import { Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import { PactChoices } from '@/components/ritual/pact-choices';
 import { ReviewChoices, OUTCOMES } from '@/components/ritual/review-choices';
@@ -245,11 +244,8 @@ export default function Workshop() {
       style={GUARDIAN_CSS_TIMING as CSSProperties}
     >
       <header className="masthead">
-        <Link
-          className="wordmark"
-          href="/"
-          aria-label="Confidence Workshop home"
-        >
+        {/* oxlint-disable-next-line nextjs/no-html-link-for-pages -- Static hosts use document navigation. */}
+        <a className="wordmark" href="/" aria-label="Confidence Workshop home">
           <span className="brand-mark">
             cw<span>↗</span>
           </span>
@@ -258,7 +254,7 @@ export default function Workshop() {
             <br />
             WORKSHOP<span className="brand-dot">.</span>
           </span>
-        </Link>
+        </a>
         <div className="header-controls">
           <button className="text-button" onClick={switchMode}>
             {mode === 'demo' ? 'Exit demo' : 'Try demo'} ↗

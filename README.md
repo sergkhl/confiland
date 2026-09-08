@@ -2,6 +2,8 @@
 
 A browser-local pact with an original manga tanuki guardian: choose an everyday action, build momentum, seal it together, and return with your own account of the attempt.
 
+Play at **[confiland.globesoul.com](https://confiland.globesoul.com/)**. Source: [sergkhl/confiland](https://github.com/sergkhl/confiland).
+
 ## Play
 
 Choose **Start a real conversation**, **Make a clear request**, or **Share a different view**. Each asks for a meaningful contribution: an update plus an open question, a specific request plus a reason, or a respectful different opinion plus a reason. A reply or agreement is never required. There are no practice categories, difficulty numbers, or automatic smaller/larger suggestions.
@@ -49,6 +51,22 @@ npm run build
 `npm run dev` starts Vinext/Vite with hot module replacement: saved React/TypeScript and CSS source changes update the open preview automatically. Open the Local URL printed by the server and keep the process running. `vite.config.ts` enables polling when `CODEX_SANDBOX=seatbelt` so source watching also works in the macOS Codex sandbox. `npm start` serves the existing build; use `npm run dev` while editing source.
 
 The existing Sites/Vinext build targets Cloudflare Workers. `.openai/hosting.json` identifies the Site. [Repository instructions](AGENTS.md) authorize acceptance testing as part of the work without a separate permission question. Deployment and publication remain separate actions. This repository does not maintain a release manifest for now.
+
+## GitHub Pages
+
+The public GitHub repository publishes the site at **https://confiland.globesoul.com/**. `.github/workflows/pages.yml` runs on pushes to `main` and manual dispatch. It installs the lockfile dependencies, runs tests, TypeScript and targeted lint, then builds and validates the static artifact before deploying through the `github-pages` environment. GitHub Actions versions are pinned to reviewed release commits. The workflow uses the built-in GitHub token and OpenID Connect; it needs no deployment secret.
+
+`npm run build:pages` sets `CONFILAND_STATIC_EXPORT=1` for a Vinext `output: 'export'` build. Only this mode omits the Sites/Cloudflare runtime plugins. Its public output is `dist/client/`, including the generated HTML, client scripts/styles, static RSC payload, fonts and guardian assets. The workflow uploads only that public directory. The home link uses ordinary document navigation, avoiding unnecessary RSC prefetch on this single-route static site.
+
+The custom domain serves the app at `/`, so no repository-name base path is added. `public/CNAME` records `confiland.globesoul.com`, and `public/.nojekyll` preserves static assets without Jekyll processing. The domain's DNS CNAME points to `sergkhl.github.io`; GitHub Pages also records the custom domain and enforces HTTPS. DNS CNAME alone does not select the repository.
+
+To preview the exported files locally after building:
+
+```sh
+python3 -m http.server 3002 --bind 127.0.0.1 --directory dist/client
+```
+
+Open `http://127.0.0.1:3002/?demo=1` for isolated play. Saved pacts belong to each browser origin; the custom domain does not copy saves from localhost or the earlier Sites address. `npm run dev` and the normal `npm run build` retain the existing development and Sites/Workers configuration. After a Pages export, run the normal build again before using the existing Worker-based `npm start` command.
 
 ## Core code and browser tools
 

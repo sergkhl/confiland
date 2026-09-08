@@ -1,9 +1,9 @@
 # A continuous stretch slider, speaking guardian, and stronger momentum challenge
 
-Status: Complete locally; implementation and all available acceptance checks pass. Physical-touch and continuous-motion evidence limits are recorded below.
+Status: Local implementation complete; the owner-authorized public GitHub Pages deployment is in progress. Physical-touch and continuous-motion evidence limits are recorded below.
 Order: 1 of 1.
 Authority: Owner-approved continuous-slider replacement plan on 2026-09-08; existing image-editing authorization and AGENTS.md acceptance authority remain in effect.
-NEXT: None for the authorized local implementation. Deployment requires a separate owner request.
+NEXT: Publish and verify the static build at confiland.globesoul.com through GitHub Pages; the owner explicitly authorized public repository visibility and hosting on 2026-09-08.
 Exit: Requested implementation and available local acceptance pass; identify unavailable physical-touch/motion surfaces precisely. Deployment remains separate.
 Coordination: [Index](README.md) · [TODO](TODO.md) · [Blockers](BLOCKERS.md).
 
@@ -52,6 +52,14 @@ Review stays sequential: outcome → applicable comparison → effort, or outcom
 ## Completion
 
 The current implementation and all available local acceptance checks pass. The free slider, player-preview balloon, Doable shortcut, stronger momentum and longer reactions are enabled in the local demo. The existing transparent assets and hot-reload instructions are preserved. No release manifest, substitute repository status file, deployment or publication is introduced.
+
+## GitHub Pages deployment — 2026-09-08
+
+The owner explicitly requested a public repository and GitHub Pages hosting for `confiland.globesoul.com`, with DNS CNAME already pointing to `sergkhl.github.io`. This authorizes the repository visibility change, Pages configuration, custom domain/HTTPS settings, source pushes and the deployment workflow. The original Sites project remains a separate deployment target.
+
+Add a conditional static-export build while retaining the existing local/HMR and Worker build. Commit CNAME and no-Jekyll markers, upload only `dist/client`, and deploy from a pinned GitHub Actions workflow after tests, type checks, lint and artifact validation. Verify the deployed commit, HTTPS response, assets and browser hydration in demo mode. Keep implementation and observed hosting evidence in this plan and the existing index/TODO; create no release/status file.
+
+Local static export and all 55 tests, TypeScript and targeted lint pass. The exported app rendered the transparent guardian and free slider, completed twenty taps, retained unsigned readiness through reload, and explicitly sealed without a server. That check identified a framework RSC prefetch error on the root Link; the one-route home control now uses an ordinary anchor. The corrected export reloaded with no fresh browser warnings/errors, all thirteen transparent assets decoded, and the saved pact intact. The normal Worker build and development HTTP 200 also pass; GitHub deployment verification remains next.
 
 ## Validation Log
 
