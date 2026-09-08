@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: 'Confidence Workshop',
   icons: { icon: '/favicon.svg' },
   description:
-    'Choose an everyday action, sign AGREE with your manga tanuki guardian, and return with an honest account of your attempt.',
+    'Choose an everyday action, build momentum and seal a pact with your manga tanuki guardian, and return with an honest account of your attempt.',
 };
 export default function RootLayout({
   children,

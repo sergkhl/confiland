@@ -23,11 +23,13 @@ function traceDraft() {
   let s = newState('2026-09-07', 'fixture');
   for (const e of [
     { type: 'choose', action: 'conversation' },
-    { type: 'anticipated', effort: 'manageable' },
+    { type: 'anticipated', value: 50 },
     { type: 'prediction', prediction: 'skip' },
     { type: 'begin' },
   ] as PactEvent[])
     s = apply(s, e);
+  s.current.phase = 'tracing';
+  delete s.current.meter;
   return s;
 }
 function follow(input: TraceSession, end = SEGMENTS.length) {

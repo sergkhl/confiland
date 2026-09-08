@@ -2,16 +2,19 @@
 
 # TODO
 
-- **Three meaningful actions and a visible guardian** — In progress. [Active plan](2026-09-07-real-world-pacts.md): compact panels, catalogue compatibility, saved-answer reactions, 40 tests, build, and browser fixtures pass. Finish true-alpha artwork after the pending extraction authorization; final asset, touch, and continuous-motion evidence remains open.
+_None for the approved local implementation. Deployment requires a separate request._
 
 # COMPLETED
 
-- Development hot reload is already configured and verified with live React and CSS edits in an isolated local demo; the development command is documented in README.
-- Three meaningful actions replace categories and difficulty suggestions; archived catalogues preserve original traces, wording, dates, and reviews.
-- Sequential choosing/review and a lower signing panel keep the guardian in view; Details, Back, unsigned pause, and explicit closure preserve player control.
-- Automated pact/storage/geometry/tool checks and durable play, compatibility, and art instructions cover the implemented flow.
-- Browser rehearsals cover both practices and all outcomes; corner rounding, atlas bleed, and brush/text overlap are repaired.
+- [Continuous stretch, speaking guardian and stronger momentum](2026-09-07-real-world-pacts.md): free slider, one live HTML/CSS balloon, atomic Doable shortcut, applicable concerns and route-specific Back preserve the compact three-challenge flow.
+- Momentum now uses twenty steady taps, 450 ms grace and 12 points/sec decay, one heading and the separate explicit seal. Untimed mode, pause/reload, readiness latching and choice locking remain intact.
+- Saved answers hold 1.2 seconds, charging poses at least 650 ms with only the newest pending pose, and the seal lasts 2.4 seconds. Shared timings keep CSS and cleanup aligned; reduced motion keeps static faces, balloon and marks.
+- The thirteen accepted transparent assets are reused unchanged; authorized isnet-anime extraction, alpha verification and 2.90 MB runtime exports remain documented.
+- Optional numeric stretch preserves exact new choices without inventing historical measurements. Old choosing drafts, meters, catalogue identity, legacy traces, signed wording and conditional reviews retain compatibility.
+- Demo checks cover continuous preview/cancellation, Back, Details, unsigned pause, normal-speed mouse/keyboard momentum, failed writes, explicit seal and all review routes. Responsive and 200% text evidence separates unavailable touch/motion surfaces.
+- All 55 tests, TypeScript, targeted lint and production build pass. Existing plan, play instructions and artwork notes are current; no release manifest, substitute status file or deployment was introduced.
+- Development hot reload remains configured and verified with React/CSS changes; existing instructions are preserved.
 
 # VALIDATION
 
-_None._
+_None. Plan-linked evidence and unavailable surfaces are recorded in the completed plan._

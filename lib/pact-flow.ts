@@ -10,7 +10,8 @@ export type ReviewStep =
 export function nextChoice(ritual: Ritual): ChoiceStep {
   return !ritual.selected
     ? 'action'
-    : !ritual.anticipated
+    : ritual.anticipatedValue === undefined ||
+        ritual.anticipated === 'manageable'
       ? 'effort'
       : 'prediction';
 }

@@ -26,7 +26,7 @@ export function ritualTools(
     {
       name: 'read_ritual',
       description:
-        'Read the current daily or demo pact and its v2 state: action, signed date, saved AGREE path progress, explicit review answers, and latest closed reviews. Does not change state or perform a gesture.',
+        'Read the current daily or demo pact and its v2 state: action, optional numeric anticipated-stretch position and derived effort, prediction or skip, signed date, saved momentum meter, pace and readiness, preserved legacy AGREE progress, explicit review answers, and latest closed reviews. Does not change state or perform a gesture.',
       inputSchema: {
         type: 'object',
         properties: {},

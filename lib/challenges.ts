@@ -5,7 +5,7 @@ export const PRACTICES = {
 export type Practice = keyof typeof PRACTICES;
 export type Step = 1 | 2 | 3;
 export const EFFORTS = {
-  manageable: 'Manageable',
+  manageable: 'Doable',
   stretch: 'A stretch',
   too_much: 'Too much',
 } as const;
@@ -70,7 +70,7 @@ export const CHALLENGES = {
     practice: 'contact',
     step: 3,
     label: 'Start a real conversation',
-    cue: 'Share an update. Ask an open question.',
+    cue: 'An update + an open question.',
     text: "Today, I'll approach an acquaintance, share a short update, and ask an open question.",
     criterion: 'Offer both parts. A reply is not required.',
     example:
@@ -80,7 +80,7 @@ export const CHALLENGES = {
     practice: 'voice',
     step: 2,
     label: 'Make a clear request',
-    cue: 'Ask for a change. Explain why.',
+    cue: 'A specific request + a reason.',
     text: "Today, I'll ask for a specific change that would help me and briefly explain why.",
     criterion: 'State your request and one reason. Agreement is not required.',
     example:
@@ -90,7 +90,7 @@ export const CHALLENGES = {
     practice: 'voice',
     step: 3,
     label: 'Share a different view',
-    cue: 'Say what you think. Give one reason.',
+    cue: 'Your opinion + one reason.',
     text: "Today, I'll respectfully share a different opinion in an everyday conversation, with one reason.",
     criterion:
       'State your view and reason respectfully. Agreement is not required.',

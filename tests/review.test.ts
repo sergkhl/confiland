@@ -1,3 +1,4 @@
+import { taps } from './helpers.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { type Practice } from '../lib/challenges.ts';
@@ -6,7 +7,6 @@ import {
   transitionPact,
   parseState,
   migrateLegacy,
-  PATH_ID,
   emptyReview,
   type PactState,
   type PactEvent,
@@ -23,10 +23,10 @@ function signed(practice: Practice = 'voice') {
       type: 'choose',
       action: practice === 'voice' ? 'request' : 'conversation',
     },
-    { type: 'anticipated', effort: 'stretch' },
+    { type: 'anticipated', value: 50 },
     { type: 'prediction', prediction: 'decline' },
     { type: 'begin' },
-    { type: 'progress', pathId: PATH_ID, progress: 1 },
+    ...taps,
     { type: 'seal', deliberate: true },
     { type: 'back' },
   ] as PactEvent[])
@@ -89,10 +89,10 @@ void test('practices retain independent latest reviews across days and no opport
   s = apply(s, { type: 'new_day' }, '2026-09-08');
   for (const e of [
     { type: 'choose', action: 'opinion' },
-    { type: 'anticipated', effort: 'manageable' },
+    { type: 'anticipated', value: 50 },
     { type: 'prediction', prediction: 'skip' },
     { type: 'begin' },
-    { type: 'progress', pathId: PATH_ID, progress: 1 },
+    ...taps,
     { type: 'seal', deliberate: true },
     { type: 'back' },
     { type: 'outcome', outcome: 'tried' },

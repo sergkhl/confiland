@@ -1,3 +1,4 @@
+import { charge } from './helpers.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CHALLENGES, ACTION_IDS } from '../lib/challenges.ts';
@@ -21,7 +22,7 @@ export function draft() {
   let s = newState(date, 'pact');
   for (const e of [
     { type: 'choose', action: 'request' },
-    { type: 'anticipated', effort: 'stretch' },
+    { type: 'anticipated', value: 50 },
     { type: 'prediction', prediction: 'skip' },
     { type: 'begin' },
   ] as PactEvent[])
@@ -29,11 +30,7 @@ export function draft() {
   return s;
 }
 export function signed(today = date) {
-  return apply(
-    apply(draft(), { type: 'progress', progress: 1, pathId: PATH_ID }),
-    { type: 'seal', deliberate: true },
-    today,
-  );
+  return apply(charge(draft()), { type: 'seal', deliberate: true }, today);
 }
 class MemoryStore {
   values = new Map<string, string>();
@@ -64,13 +61,13 @@ void test('exactly three equally available actions require an authored contribut
   assert.match(CHALLENGES.opinion.text, /different opinion.*one reason/);
   assert.match(CHALLENGES.request.criterion, /Agreement is not required/);
 });
-void test('Too much does not change choice; trace freezes all choice fields', () => {
+void test('Too much does not change choice; sealing freezes all choice fields', () => {
   let s = apply(newState(date), { type: 'choose', action: 'opinion' });
-  s = apply(s, { type: 'anticipated', effort: 'too_much' });
+  s = apply(s, { type: 'anticipated', value: 83 });
   assert.equal(s.current.selected, 'opinion');
   for (const event of [
     { type: 'choose', action: 'conversation' },
-    { type: 'anticipated', effort: 'manageable' },
+    { type: 'anticipated', value: 16.5 },
     { type: 'prediction', prediction: 'stop' },
   ] as PactEvent[])
     assert.throws(() => apply(draft(), event), /frozen/);
@@ -82,7 +79,7 @@ void test('Too much does not change choice; trace freezes all choice fields', ()
 void test('explicit skip differs from an unanswered prediction or observation', () => {
   const s = apply(
     apply(newState(date), { type: 'choose', action: 'conversation' }),
-    { type: 'anticipated', effort: 'manageable' },
+    { type: 'anticipated', value: 50 },
   );
   assert.throws(() => apply(s, { type: 'begin' }));
   assert.equal(
@@ -104,11 +101,7 @@ void test('seal uses actual date, never elapsed time, and rejects duplicate or s
   assert.throws(() =>
     apply({ ...draft(), lastSignedDate: date }, { type: 'new_day' }),
   );
-  const full = apply(draft(), {
-    type: 'progress',
-    pathId: PATH_ID,
-    progress: 1,
-  });
+  const full = charge(draft());
   assert.throws(() =>
     apply(
       { ...full, lastSignedDate: date },
@@ -220,13 +213,7 @@ void test('storage commits reread current state and save before exposing changes
   );
   store.fail = true;
   assert.throws(() =>
-    commitPact(
-      store,
-      'daily',
-      next,
-      { type: 'anticipated', effort: 'stretch' },
-      date,
-    ),
+    commitPact(store, 'daily', next, { type: 'anticipated', value: 50 }, date),
   );
   assert.deepEqual(parseState(store.getItem(DAILY_KEY)!), next);
 });

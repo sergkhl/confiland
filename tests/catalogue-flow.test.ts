@@ -1,3 +1,4 @@
+import { charge, taps } from './helpers.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -54,7 +55,7 @@ function oldRaw(s: PactState) {
 function chosen() {
   return apply(
     apply(newState(date, 'new-pact'), { type: 'choose', action: 'request' }),
-    { type: 'anticipated', effort: 'stretch' },
+    { type: 'anticipated', value: 50 },
   );
 }
 void test('old choosing drafts refresh once, retain identity and explain the new catalogue', () => {
@@ -103,12 +104,10 @@ void test('every archived action preserves partial ink, seals its original wordi
     old = loadPact(store, 'daily', date);
     assert.equal(old.current.catalog, 'everyday-1');
     assert.equal(old.current.trace.progress, 0.4);
-    assert.equal(store.writes, 0);
+    assert.equal(store.writes, 1);
+    assert.equal(old.current.phase, 'sealing');
     assert.throws(() => apply(old, { type: 'edit_choices' }));
-    old = apply(
-      apply(old, { type: 'progress', pathId: PATH_ID, progress: 1 }),
-      { type: 'seal', deliberate: true },
-    );
+    old = apply(charge(old), { type: 'seal', deliberate: true });
     assert.equal(old.current.signed?.text, EARLIER_CHALLENGES[action].text);
     assert.equal(
       old.current.signed?.criterion,
@@ -157,17 +156,16 @@ void test('prediction and entry into signing are one guarded write, and zero ink
     date,
   );
   assert.equal(store.writes, 1);
-  assert.equal(tracing.current.phase, 'tracing');
+  assert.equal(tracing.current.phase, 'sealing');
   assert.equal(tracing.current.prediction, 'decline');
   assert.equal(
     nextChoice(apply(tracing, { type: 'edit_choices' }).current),
     'prediction',
   );
   assert.throws(() =>
-    apply(
-      apply(tracing, { type: 'progress', pathId: PATH_ID, progress: 0.01 }),
-      { type: 'edit_choices' },
-    ),
+    apply(apply(tracing, { type: 'tap', decayMs: 0 }), {
+      type: 'edit_choices',
+    }),
   );
   const refreshed = apply(oldDraft(), { type: 'edit_choices' });
   assert.equal(refreshed.current.catalog, CATALOG_VERSION);
@@ -214,7 +212,7 @@ void test('reload derives one unanswered prompt for every conditional review pat
     for (const outcome of ['done', 'tried', 'not_today'] as const) {
       let s = apply(chosen(), { type: 'begin', prediction });
       for (const event of [
-        { type: 'progress', pathId: PATH_ID, progress: 1 },
+        ...taps,
         { type: 'seal', deliberate: true },
         { type: 'back' },
       ] as PactEvent[])
@@ -264,12 +262,12 @@ void test('emotion follows saved answers, signing activity, and honest outcomes 
     );
   const tooMuch = apply(chosen(), {
     type: 'anticipated',
-    effort: 'too_much',
+    value: 83,
   }).current;
   assert.equal(
     guardianEmotion(tooMuch, false, {
       type: 'anticipated',
-      effort: 'too_much',
+      value: 83,
     }),
     'surprised',
   );
@@ -281,10 +279,7 @@ void test('emotion follows saved answers, signing activity, and honest outcomes 
     guardianSymbol('reassuring', trace.current, { type: 'begin' }),
     '﹏',
   );
-  const sealed = apply(
-    apply(trace, { type: 'progress', pathId: PATH_ID, progress: 1 }),
-    { type: 'seal', deliberate: true },
-  );
+  const sealed = apply(charge(trace), { type: 'seal', deliberate: true });
   assert.equal(
     guardianEmotion(sealed.current, false, { type: 'seal', deliberate: true }),
     'delighted',

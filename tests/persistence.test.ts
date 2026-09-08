@@ -1,9 +1,9 @@
+import { taps } from './helpers.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   DAILY_KEY,
   DEMO_KEY,
-  PATH_ID,
   parseState,
   type PactEvent,
   type PactState,
@@ -55,7 +55,7 @@ function prepare(
 ) {
   for (const event of [
     { type: 'choose', action },
-    { type: 'anticipated', effort: 'stretch' },
+    { type: 'anticipated', value: 50 },
     { type: 'prediction', prediction },
     { type: 'begin' },
   ] as PactEvent[])
@@ -67,10 +67,10 @@ void test('isolated persisted journeys cover both practices, every outcome and p
       for (const prediction of ['skip', 'stop'] as const) {
         const d = driver();
         prepare(d, action, prediction);
-        d.send({ type: 'progress', pathId: PATH_ID, progress: 0.43 });
-        assert.equal(d.reload().current.trace.progress, 0.43);
-        d.send({ type: 'progress', pathId: PATH_ID, progress: 1 });
-        assert.equal(d.reload().current.phase, 'tracing');
+        d.send({ type: 'tap', decayMs: 0 });
+        assert.equal(d.reload().current.meter?.charge, 5);
+        for (const tap of taps) d.send(tap);
+        assert.equal(d.reload().current.phase, 'sealing');
         d.send({ type: 'seal', deliberate: true });
         d.send({ type: 'back' });
         d.send({ type: 'outcome', outcome });
@@ -94,7 +94,7 @@ void test('isolated persisted journeys cover both practices, every outcome and p
 void test('write failures never expose a seal, outcome or closed review; recovery requires new intent', () => {
   const d = driver();
   prepare(d);
-  d.send({ type: 'progress', pathId: PATH_ID, progress: 1 });
+  for (const tap of taps) d.send(tap);
   for (const event of [
     { type: 'seal', deliberate: true },
     { type: 'back' },
@@ -115,7 +115,7 @@ void test('write failures never expose a seal, outcome or closed review; recover
 void test('stale endpoint and review events cannot replace a newer tab’s state', () => {
   const d = driver('daily');
   prepare(d);
-  d.send({ type: 'progress', pathId: PATH_ID, progress: 1 });
+  for (const tap of taps) d.send(tap);
   const stale = d.state;
   d.send({ type: 'seal', deliberate: true });
   assert.throws(
@@ -148,7 +148,7 @@ void test('stale endpoint and review events cannot replace a newer tab’s state
 void test('a selected draft crosses midnight without an invented earlier commitment', () => {
   const d = driver('daily');
   prepare(d, 'opinion');
-  d.send({ type: 'progress', pathId: PATH_ID, progress: 1 });
+  for (const tap of taps) d.send(tap);
   assert.equal(d.state.lastSignedDate, null);
   const next = d.send({ type: 'seal', deliberate: true }, '2026-09-08');
   assert.equal(next.current.date, '2026-09-08');
@@ -167,17 +167,15 @@ void test('missing, unavailable and malformed stores remain recoverable without 
   assert.throws(() => d.reload());
   assert.equal(d.store.getItem(DEMO_KEY), '{broken');
   d.store.setItem(DEMO_KEY, raw!);
-  assert.equal(d.reload().current.phase, 'tracing');
+  assert.equal(d.reload().current.phase, 'sealing');
   d.store.values.delete(DEMO_KEY);
-  assert.throws(() =>
-    d.send({ type: 'progress', pathId: PATH_ID, progress: 0.2 }),
-  );
+  assert.throws(() => d.send({ type: 'tap', decayMs: 0 }));
   assert.equal(d.store.getItem(DEMO_KEY), null);
 });
 void test('repeating the same outcome keeps previously supplied observations', () => {
   const d = driver();
   prepare(d, 'conversation', 'stop');
-  d.send({ type: 'progress', pathId: PATH_ID, progress: 1 });
+  for (const tap of taps) d.send(tap);
   d.send({ type: 'seal', deliberate: true });
   d.send({ type: 'back' });
   d.send({ type: 'outcome', outcome: 'tried' });
@@ -191,7 +189,7 @@ void test('invalid runtime events and immutable action corruption fail closed', 
   const d = driver();
   prepare(d);
   assert.throws(() => d.send({ type: 'unknown' } as unknown as PactEvent));
-  d.send({ type: 'progress', pathId: PATH_ID, progress: 1 });
+  for (const tap of taps) d.send(tap);
   d.send({ type: 'seal', deliberate: true });
   const forged: PactState = structuredClone(d.state);
   forged.current.signed!.text = 'A different commitment';

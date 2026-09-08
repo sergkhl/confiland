@@ -2,22 +2,23 @@ import { useState } from 'react';
 import {
   ACTION_IDS,
   CHALLENGES,
-  EFFORTS,
   PREDICTIONS,
   catalogAction,
-  type Effort,
   type Prediction,
 } from '@/lib/challenges';
 import { nextChoice, type ChoiceStep } from '@/lib/pact-flow';
 import type { PactEvent, Ritual } from '@/lib/ritual';
 import { ActionDetails, PromptTitle } from './action-details';
+import { StretchChoice } from './stretch-choice';
 
 export function PactChoices({
   ritual,
   send,
+  onBalloon,
 }: {
   ritual: Ritual;
   send: (event: PactEvent) => boolean;
+  onBalloon: (label: string | null) => void;
 }) {
   const [step, setStep] = useState<ChoiceStep>(() => nextChoice(ritual));
   const [details, setDetails] = useState(false);
@@ -50,6 +51,15 @@ export function PactChoices({
     <section className="pact-choices" data-choice-step={step}>
       {step !== 'action' && action && (
         <div className="selected-action">
+          <button
+            className="back-icon"
+            aria-label={
+              step === 'prediction' ? 'Back to effort' : 'Back to actions'
+            }
+            onClick={() => setStep(step === 'prediction' ? 'effort' : 'action')}
+          >
+            ←
+          </button>
           <span>{action.label}</span>
           <button className="text-button" onClick={() => setDetails(true)}>
             Details
@@ -60,7 +70,7 @@ export function PactChoices({
         {step === 'action'
           ? 'Choose your challenge.'
           : step === 'effort'
-            ? 'How does it feel today?'
+            ? 'How much of a stretch would this be?'
             : 'Anything on your mind?'}
       </PromptTitle>
       {step === 'action' && (
@@ -99,20 +109,16 @@ export function PactChoices({
         </>
       )}
       {step === 'effort' && (
-        <div className="chip-row three-choices">
-          {(Object.keys(EFFORTS) as Effort[]).map((effort) => (
-            <button
-              key={effort}
-              aria-pressed={ritual.anticipated === effort}
-              onClick={() => {
-                if (send({ type: 'anticipated', effort }))
-                  setStep('prediction');
-              }}
-            >
-              {EFFORTS[effort]}
-            </button>
-          ))}
-        </div>
+        <StretchChoice
+          value={ritual.anticipatedValue}
+          effort={ritual.anticipated}
+          onBalloon={onBalloon}
+          onChoose={(value) => {
+            const saved = send({ type: 'anticipated', value });
+            if (saved) setStep('prediction');
+            return saved;
+          }}
+        />
       )}
       {step === 'prediction' && (
         <>
@@ -137,7 +143,7 @@ export function PactChoices({
           </div>
           {ritual.anticipated === 'too_much' && (
             <div className="gentle-exit">
-              <span>You can leave this unsigned.</span>
+              <span className="sr-only">You can leave this unsigned.</span>
               <button className="text-button" onClick={() => setStep('action')}>
                 Change action
               </button>
@@ -147,14 +153,6 @@ export function PactChoices({
             </div>
           )}
         </>
-      )}
-      {step !== 'action' && (
-        <button
-          className="back-button"
-          onClick={() => setStep(step === 'prediction' ? 'effort' : 'action')}
-        >
-          ← Back
-        </button>
       )}
     </section>
   );

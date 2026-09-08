@@ -21,6 +21,14 @@ import {
 import { parseRitual as parseLegacy } from './legacy-ritual.ts';
 import { localDate } from './local-date.ts';
 import { PATH_ID } from './signature-path.ts';
+import { stretchEffort, validStretch } from './stretch-choice.ts';
+import {
+  advanceMeter,
+  newMeter,
+  validMeter,
+  type SealMeter,
+  type SealPace,
+} from './seal-meter.ts';
 
 export { localDate };
 export const DAILY_KEY = 'confidence-workshop.ritual.v2';
@@ -49,12 +57,15 @@ export type Ritual = {
   date: string;
   catalog: CatalogVersion;
   catalogUpdated?: boolean;
-  phase: 'choosing' | 'tracing' | 'away' | 'reviewing' | 'closed';
+  phase: 'choosing' | 'tracing' | 'sealing' | 'away' | 'reviewing' | 'closed';
   practice: Practice;
   selected: SavedActionId | null;
   anticipated: Effort | null;
+  anticipatedValue?: number;
   prediction: Prediction | 'skip' | null;
   trace: { pathId: typeof PATH_ID; progress: number };
+  meter?: SealMeter;
+  sealUpdated?: boolean;
   signed: SignedAction | null;
   review: Review;
 };
@@ -74,13 +85,16 @@ export type PactState = {
 };
 type ChoiceEvent =
   | { type: 'choose'; action: ActionId }
-  | { type: 'anticipated'; effort: Effort }
+  | { type: 'anticipated'; value: number }
   | { type: 'prediction'; prediction: Prediction | 'skip' };
 export type PactEvent =
   | ChoiceEvent
   | { type: 'begin'; prediction?: Prediction | 'skip' }
   | { type: 'edit_choices' }
   | { type: 'progress'; progress: number; pathId: string }
+  | { type: 'tap'; decayMs: number }
+  | { type: 'pause_seal'; decayMs: number }
+  | { type: 'seal_pace'; pace: SealPace; decayMs: number }
   | { type: 'seal'; deliberate: true }
   | { type: 'back' }
   | { type: 'outcome'; outcome: Outcome }
@@ -185,13 +199,21 @@ export function transitionPact(
         prediction: null,
         catalogUpdated: false,
       };
+      delete next.anticipatedValue;
       break;
     case 'anticipated':
       requireValue(
-        r.selected && has(EFFORTS, event.effort),
+        r.selected && validStretch(event.value),
         'Choose an action and effort.',
       );
-      next.anticipated = event.effort;
+      next.anticipatedValue = event.value;
+      next.anticipated = stretchEffort(event.value);
+      next.prediction = null;
+      if (next.anticipated === 'manageable') {
+        next.prediction = 'skip';
+        next.phase = 'sealing';
+        next.meter = newMeter();
+      }
       break;
     case 'prediction':
       requireValue(
@@ -212,18 +234,23 @@ export function transitionPact(
         'Choose an action, effort, and prediction or Skip first.',
       );
       next.prediction = prediction as Prediction | 'skip';
-      next.phase = 'tracing';
+      next.phase = 'sealing';
+      next.meter = newMeter();
       break;
     }
     case 'edit_choices':
       requireValue(
-        r.phase === 'tracing' && r.trace.progress === 0,
-        'The action is frozen once writing starts.',
+        (r.phase === 'tracing' || r.phase === 'sealing') &&
+          r.trace.progress === 0 &&
+          !r.meter?.started,
+        'The action is frozen once sealing starts.',
       );
       next =
         r.catalog === CATALOG_VERSION
           ? { ...r, phase: 'choosing' }
           : { ...newState(r.date, r.id).current, catalogUpdated: true };
+      delete next.meter;
+      delete next.sealUpdated;
       break;
     case 'progress':
       requireValue(
@@ -237,13 +264,32 @@ export function transitionPact(
       if (event.progress <= r.trace.progress) return state;
       next.trace = { ...r.trace, progress: event.progress };
       break;
+    case 'tap':
+    case 'pause_seal':
+    case 'seal_pace': {
+      requireValue(
+        r.phase === 'sealing' && r.meter,
+        'This pact is not charging.',
+      );
+      const meter = advanceMeter(r.meter, event.decayMs, event.type === 'tap');
+      if (event.type === 'seal_pace') {
+        requireValue(
+          event.pace === 'momentum' || event.pace === 'untimed',
+          'Invalid sealing pace.',
+        );
+        meter.pace = event.pace;
+      }
+      if (JSON.stringify(meter) === JSON.stringify(r.meter)) return state;
+      next.meter = meter;
+      break;
+    }
     case 'seal': {
       requireValue(
-        r.phase === 'tracing' &&
-          r.trace.progress === 1 &&
+        (r.phase === 'tracing' || r.phase === 'sealing') &&
+          (r.trace.progress === 1 || r.meter?.ready === true) &&
           event.deliberate === true &&
           r.selected,
-        'Finish the signature and deliberately release to seal.',
+        'Fill the meter and explicitly seal your pact.',
       );
       requireValue(
         !lastSignedDate || lastSignedDate < today,
@@ -441,7 +487,14 @@ export function parseState(raw: string): PactState {
     typeof r.id === 'string' &&
       r.id.length > 0 &&
       dateValid(r.date) &&
-      ['choosing', 'tracing', 'away', 'reviewing', 'closed'].includes(r.phase),
+      [
+        'choosing',
+        'tracing',
+        'sealing',
+        'away',
+        'reviewing',
+        'closed',
+      ].includes(r.phase),
     'Invalid saved pact.',
   );
   requireValue(
@@ -462,22 +515,47 @@ export function parseState(raw: string): PactState {
     'The saved signature needs its original path.',
   );
   requireValue(
+    r.anticipatedValue === undefined ||
+      (validStretch(r.anticipatedValue) &&
+        r.selected &&
+        stretchEffort(r.anticipatedValue) === r.anticipated),
+    'The saved stretch position does not match its effort.',
+  );
+  requireValue(
     s.lastSignedDate === null || dateValid(s.lastSignedDate),
     'Invalid daily limit.',
   );
+  requireValue(
+    r.meter === undefined || validMeter(r.meter),
+    'Invalid saved seal meter.',
+  );
+  requireValue(
+    r.sealUpdated === undefined || typeof r.sealUpdated === 'boolean',
+    'Invalid seal migration.',
+  );
+  if (r.phase === 'sealing') requireValue(r.meter, 'Missing seal meter.');
+  if (r.phase === 'tracing')
+    requireValue(r.meter === undefined, 'A legacy trace contains a meter.');
   validateReview(r.review);
   if (r.selected)
     requireValue(
       catalogAction(r.catalog, r.selected)?.practice === r.practice,
       'Practice and action do not match.',
     );
-  if (r.phase === 'choosing' || r.phase === 'tracing') {
+  if (
+    r.phase === 'choosing' ||
+    r.phase === 'tracing' ||
+    r.phase === 'sealing'
+  ) {
     requireValue(
       r.signed === null && r.review.outcome === null,
       'An unsigned draft contains a commitment.',
     );
     if (r.phase === 'choosing') {
-      requireValue(r.trace.progress === 0, 'A choice contains signature ink.');
+      requireValue(
+        r.trace.progress === 0 && !r.meter,
+        'A choice contains sealing progress.',
+      );
       if (!r.selected)
         requireValue(
           r.anticipated === null && r.prediction === null,
@@ -496,7 +574,7 @@ export function parseState(raw: string): PactState {
     validateSigned(r.signed);
     if (r.signed.catalog !== 'legacy-v1')
       requireValue(
-        r.trace.progress === 1 &&
+        (r.trace.progress === 1 || r.meter?.ready === true) &&
           r.catalog === r.signed.catalog &&
           r.selected === r.signed.actionId &&
           r.anticipated &&
@@ -506,6 +584,7 @@ export function parseState(raw: string): PactState {
     else
       requireValue(
         r.selected === null &&
+          r.meter === undefined &&
           r.trace.progress === 0 &&
           r.anticipated === null &&
           r.prediction === null,

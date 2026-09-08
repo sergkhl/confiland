@@ -1,18 +1,5 @@
 import type { PactEvent, Ritual } from './ritual.ts';
-
-// Keep the existing art until the first replacement passes actual-alpha acceptance.
-export const TRANSPARENT_ARTWORK_READY = false;
-export const LEGACY_POSE = {
-  curious: 4,
-  welcoming: 2,
-  determined: 1,
-  confident: 3,
-  surprised: 4,
-  reassuring: 0,
-  focused: 1,
-  delighted: 3,
-  relaxed: 5,
-} as const;
+import { stretchEffort } from './stretch-choice.ts';
 
 export const EMOTIONS = {
   curious: { label: 'Alert and curious', symbol: '?', effect: 'curiosity' },
@@ -39,6 +26,17 @@ export const EMOTIONS = {
     symbol: '✦',
     effect: 'celebrate',
   },
+  anticipation: {
+    label: 'Ready to strike the seal',
+    symbol: '!!',
+    effect: 'speed',
+  },
+  strike: {
+    label: 'A triumphant sealing strike',
+    symbol: '✦',
+    effect: 'celebrate',
+  },
+  smear: { label: 'A burst of sealing momentum', symbol: '✦', effect: 'speed' },
   relaxed: {
     label: 'Relaxed, accepting attention',
     symbol: '〰',
@@ -51,19 +49,35 @@ export const POSES = Object.keys(EMOTIONS) as Emotion[];
 /** A cue exists only after a committed answer, never after loading a saved pact. */
 export function guardianEmotion(
   ritual: Ritual | undefined,
-  writing = false,
+  charging = false,
   cue: PactEvent | null = null,
 ): Emotion {
   if (!ritual) return 'curious';
   if (cue?.type === 'seal' && ritual.phase === 'away') return 'delighted';
-  if (cue?.type === 'anticipated' && cue.effort === 'too_much')
-    return 'surprised';
-  if (writing && ritual.phase === 'tracing') return 'focused';
-  if (cue?.type === 'begin' && ritual.phase === 'tracing') {
+  if (cue?.type === 'anticipated') {
+    const effort = stretchEffort(cue.value);
+    return effort === 'too_much'
+      ? 'surprised'
+      : effort === 'stretch'
+        ? 'determined'
+        : 'confident';
+  }
+  if (cue?.type === 'begin' && ritual.phase === 'sealing') {
     if (ritual.prediction === 'skip') return 'confident';
     return ritual.prediction === 'stop' ? 'reassuring' : 'focused';
   }
-  if (ritual.phase === 'tracing') return 'relaxed';
+  if (
+    ritual.phase === 'sealing' &&
+    (ritual.meter?.ready || ritual.trace.progress === 1)
+  )
+    return 'anticipation';
+  if (charging && ritual.phase === 'sealing')
+    return (ritual.meter?.charge ?? 0) >= 66
+      ? 'anticipation'
+      : (ritual.meter?.charge ?? 0) >= 33
+        ? 'determined'
+        : 'focused';
+  if (ritual.phase === 'sealing') return 'relaxed';
   if (ritual.phase === 'reviewing' || ritual.phase === 'closed') {
     if (ritual.review.outcome === 'done') return 'welcoming';
     if (ritual.review.outcome === 'tried') return 'reassuring';

@@ -1,6 +1,12 @@
 'use client';
 import Image from 'next/image';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import Link from 'next/link';
 import { Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import { PactChoices } from '@/components/ritual/pact-choices';
@@ -21,13 +27,14 @@ import {
   type Mode,
 } from '@/lib/pact-storage';
 import { prepareAudio, ritualSound } from '@/lib/sound';
-import { Signature } from '@/components/ritual/signature';
+import { MomentumSeal } from '@/components/ritual/momentum-seal';
 import { guardianReaction } from '@/lib/review';
+import { guardianEmotion, guardianSymbol } from '@/lib/guardian';
 import {
-  guardianEmotion,
-  guardianSymbol,
-  TRANSPARENT_ARTWORK_READY,
-} from '@/lib/guardian';
+  GUARDIAN_CSS_TIMING,
+  GUARDIAN_TIMING,
+  SEAL_DURATION,
+} from '@/lib/guardian-motion';
 import { registerRitualTools } from '@/lib/webmcp';
 
 export default function Workshop() {
@@ -35,17 +42,23 @@ export default function Workshop() {
   const [mode, setMode] = useState<Mode>('daily');
   const [muted, setMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const retryButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (error) retryButton.current?.focus();
+  }, [error]);
   const [today, setToday] = useState('');
   const [cue, setCue] = useState<{ event: PactEvent; revision: number } | null>(
     null,
   );
-  const [writing, setWriting] = useState(false);
+  const [charging, setCharging] = useState(false);
+  const [tapBeat, setTapBeat] = useState(0);
+  const [balloon, setBalloon] = useState<string | null>(null);
   const [details, setDetails] = useState(false);
   const [loadedAt, setLoadedAt] = useState(0);
   const current = useRef<PactState | null>(null),
     modeRef = useRef<Mode>('daily'),
     mutedRef = useRef(false);
-  const onMotion = useCallback((active: boolean) => setWriting(active), []);
+  const onMotion = useCallback((active: boolean) => setCharging(active), []);
   const show = useCallback((next: PactState | null) => {
     current.current = next;
     setState(next);
@@ -56,7 +69,9 @@ export default function Workshop() {
       setMode(nextMode);
       setError(null);
       setCue(null);
-      setWriting(false);
+      setCharging(false);
+      setTapBeat(0);
+      setBalloon(null);
       setDetails(false);
       setLoadedAt((value) => value + 1);
       try {
@@ -83,6 +98,11 @@ export default function Workshop() {
       const before = current.current;
       if (!before || (expectedId && before.current.id !== expectedId))
         return false;
+      if (
+        event.type === 'pause_seal' &&
+        (before.current.phase !== 'sealing' || before.current.meter?.ready)
+      )
+        return false;
       try {
         const next = commitPact(
           modeRef.current === 'daily' ? localStorage : sessionStorage,
@@ -94,8 +114,15 @@ export default function Workshop() {
         show(next);
         setError(null);
         setToday(localDate());
-        if (event.type !== 'progress' && next.revision !== before.revision)
+        if (
+          !['progress', 'tap', 'pause_seal', 'seal_pace'].includes(
+            event.type,
+          ) &&
+          next.revision !== before.revision
+        )
           setCue({ event, revision: next.revision });
+        if (event.type === 'tap' && next.revision !== before.revision)
+          setTapBeat((beat) => beat + 1);
         if (event.type === 'seal') ritualSound('seal', mutedRef.current);
         return true;
       } catch (failure) {
@@ -103,7 +130,9 @@ export default function Workshop() {
           show(failure.current);
           setLoadedAt((value) => value + 1);
           setCue(null);
-          setWriting(false);
+          setCharging(false);
+          setTapBeat(0);
+          setBalloon(null);
         }
         setError(
           failure instanceof StalePactError
@@ -119,7 +148,7 @@ export default function Workshop() {
     if (!cue) return;
     const timer = setTimeout(
       () => setCue(null),
-      cue.event.type === 'anticipated' ? 850 : 1800,
+      cue.event.type === 'seal' ? SEAL_DURATION : GUARDIAN_TIMING.answer,
     );
     return () => clearTimeout(timer);
   }, [cue]);
@@ -204,12 +233,17 @@ export default function Workshop() {
     : ritual?.selected
       ? catalogAction(ritual.catalog, ritual.selected)
       : null;
-  const step = phase === 'choosing' ? 0 : phase === 'tracing' ? 1 : 2;
-  const emotion = guardianEmotion(ritual, writing, cue?.event);
+  const step = phase === 'choosing' ? 0 : phase === 'sealing' ? 1 : 2;
+  const emotion = guardianEmotion(ritual, charging, cue?.event);
   const celebrating = cue?.event.type === 'seal' && phase === 'away';
   const key = `${mode}:${ritual?.id}:${ritual?.catalog}:${loadedAt}`;
   return (
-    <main className="workshop" data-mode={mode} data-phase={phase}>
+    <main
+      className="workshop"
+      data-mode={mode}
+      data-phase={phase}
+      style={GUARDIAN_CSS_TIMING as CSSProperties}
+    >
       <header className="masthead">
         <Link
           className="wordmark"
@@ -264,13 +298,21 @@ export default function Workshop() {
           emotion={emotion}
           symbol={guardianSymbol(emotion, ritual, cue?.event)}
           celebrating={celebrating}
+          reactionKey={cue?.revision ?? 0}
+          tapBeat={tapBeat}
+          holdPose={
+            phase === 'sealing' &&
+            (charging || ritual?.meter?.ready === true) &&
+            !cue
+          }
+          balloon={balloon}
           apprehensive={
             cue?.event.type === 'begin' && ritual?.prediction !== 'skip'
           }
         />
         <div className="pact-interaction" aria-label="Pact interaction">
           <div className="prompt-progress" aria-label={`Step ${step + 1} of 3`}>
-            {['Choose', 'Sign', 'Return'].map((label, i) => (
+            {['Choose', 'Seal', 'Return'].map((label, i) => (
               <span key={label} aria-current={step === i ? 'step' : undefined}>
                 {label}
               </span>
@@ -280,6 +322,7 @@ export default function Workshop() {
             <div className="save-error" role="alert">
               <span>{error}</span>
               <button
+                ref={retryButton}
                 className="text-button"
                 onClick={() => load(modeRef.current)}
               >
@@ -293,7 +336,12 @@ export default function Workshop() {
             </PromptTitle>
           )}
           {ritual && phase === 'choosing' && (
-            <PactChoices key={key} ritual={ritual} send={send} />
+            <PactChoices
+              key={key}
+              ritual={ritual}
+              send={send}
+              onBalloon={setBalloon}
+            />
           )}
           {ritual && phase === 'reviewing' && (
             <ReviewChoices
@@ -310,15 +358,22 @@ export default function Workshop() {
             ) : (
               <>
                 <div className="selected-action">
-                  {phase === 'tracing' && ritual.trace.progress === 0 && (
-                    <button
-                      className="back-icon"
-                      aria-label="Back to choices"
-                      onClick={() => send({ type: 'edit_choices' })}
-                    >
-                      ←
-                    </button>
-                  )}
+                  {phase === 'sealing' &&
+                    ritual.trace.progress === 0 &&
+                    !ritual.meter?.started && (
+                      <button
+                        className="back-icon"
+                        aria-label={
+                          ritual.anticipated === 'manageable' ||
+                          ritual.anticipatedValue === undefined
+                            ? 'Back to stretch'
+                            : 'Back to concerns'
+                        }
+                        onClick={() => send({ type: 'edit_choices' })}
+                      >
+                        ←
+                      </button>
+                    )}
                   <span>{action?.label ?? ritual.signed?.text}</span>
                   {action && (
                     <button
@@ -329,10 +384,9 @@ export default function Workshop() {
                     </button>
                   )}
                 </div>
-                {phase === 'tracing' && (
+                {phase === 'sealing' && (
                   <>
-                    <PromptTitle>Your hand. His word.</PromptTitle>
-                    <Signature
+                    <MomentumSeal
                       key={key}
                       ritual={ritual}
                       send={send}
@@ -344,24 +398,16 @@ export default function Workshop() {
                   <>
                     <div className="sealed-heading">
                       <PromptTitle>Sealed. Go be you.</PromptTitle>
-                      {ritual.signed?.catalog !== 'legacy-v1' &&
-                        !TRANSPARENT_ARTWORK_READY && (
-                          <span
-                            className={`answer-mark legacy-answer-mark ${celebrating ? 'fresh-mark' : ''}`}
-                            aria-label="Your guardian’s answering mark"
-                          />
-                        )}
-                      {ritual.signed?.catalog !== 'legacy-v1' &&
-                        TRANSPARENT_ARTWORK_READY && (
-                          <Image
-                            unoptimized
-                            className={`answer-mark ${celebrating ? 'fresh-mark' : ''}`}
-                            src="/guardian/answer-mark.png"
-                            alt="Your guardian’s answering mark"
-                            width="64"
-                            height="64"
-                          />
-                        )}
+                      {ritual.signed?.catalog !== 'legacy-v1' && (
+                        <Image
+                          unoptimized
+                          className="answer-mark"
+                          src="/guardian/answer-mark.webp"
+                          alt="Your guardian’s answering mark"
+                          width="64"
+                          height="64"
+                        />
+                      )}
                     </div>
                     <p className="guardian-response">
                       {guardianReaction(ritual)}
@@ -433,8 +479,8 @@ export default function Workshop() {
         <span className="edition-label">ONE PACT. YOUR PACE.</span>
       </footer>
       <output className="sr-only" aria-live="polite">
-        {phase === 'tracing'
-          ? 'Write AGREE, then explicitly seal your pact.'
+        {phase === 'sealing'
+          ? 'Build momentum by tapping, then explicitly seal your pact.'
           : phase === 'away'
             ? 'Your pact is sealed and saved.'
             : phase === 'closed'

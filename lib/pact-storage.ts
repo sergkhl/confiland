@@ -11,6 +11,7 @@ import {
   type PactState,
 } from './ritual.ts';
 import { CATALOG_VERSION } from './challenges.ts';
+import { newMeter } from './seal-meter.ts';
 export type Mode = 'daily' | 'demo';
 export type Store = Pick<Storage, 'getItem' | 'setItem'>;
 const keyFor = (mode: Mode) => (mode === 'daily' ? DAILY_KEY : DEMO_KEY);
@@ -33,6 +34,20 @@ export function loadPact(
     raw = resetDemo && mode === 'demo' ? null : store.getItem(key);
   if (raw !== null) {
     const saved = parseState(raw);
+    if (saved.current.phase === 'tracing') {
+      const next: PactState = {
+        ...saved,
+        revision: saved.revision + 1,
+        current: {
+          ...saved.current,
+          phase: 'sealing',
+          sealUpdated: true,
+          meter: newMeter(saved.current.trace.progress > 0),
+        },
+      };
+      store.setItem(key, JSON.stringify(next));
+      return next;
+    }
     if (
       saved.current.phase !== 'choosing' ||
       saved.current.catalog === CATALOG_VERSION
@@ -76,5 +91,5 @@ export function commitPact(
   const next = transitionPact(saved, event, expected.current.id, today);
   parseState(JSON.stringify(next));
   if (next !== saved) store.setItem(key, JSON.stringify(next));
-  return next; // The caller renders accepted ink, seals, and outcomes only after this write succeeds.
+  return next; // The caller renders accepted input, seals, and outcomes only after this write succeeds.
 }

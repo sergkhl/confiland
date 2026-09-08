@@ -2,6 +2,6 @@
 
 # Execution index
 
-1. [Three meaningful actions with the guardian always in view](2026-09-07-real-world-pacts.md) — In progress. Compact flow, compatibility, 40 tests, build, and available browser checks pass. Transparent artwork remains blocked at the first-alpha gate; Python extraction authorization is pending.
+1. [A continuous stretch slider, speaking guardian, and stronger momentum challenge](2026-09-07-real-world-pacts.md) — Complete locally. Free stretch preview, one speech balloon, atomic Doable shortcut, twenty-tap momentum and longer comic reactions are implemented. All 55 tests, TypeScript, targeted lint, build and available browser checks pass; physical-touch/continuous-motion limits are recorded in the plan. Deployment remains separate.
 
 [Workstreams](TODO.md) · [Owner blockers](BLOCKERS.md).
